@@ -2,6 +2,10 @@
 
 A responsive **Service Explorer** for MedEx, a healthcare marketplace. Customers can browse healthcare services grouped by provider, search and filter the catalogue, compare providers, and understand service pricing.
 
+## Live Demo
+
+https://take-home-exercies.vercel.app
+
 ## Tech Stack
 
 - **Next.js 16** (App Router) with Turbopack
@@ -241,15 +245,18 @@ Work performed in small, reviewable stages:
 ## Task 2 — Multi-provider Cart and Split Checkout
 
 ### What it does
+
 A cart and split-checkout experience for MedEx. Cart lines are grouped by their group `type`; each group is checked out as a separate order with its own payment method (`card` or `pay_at_clinic`). Multi-currency subtotals are shown per currency and are never summed across currencies.
 
 Routes:
+
 - `/cart` — cart UI (grouping, quantities, wellness selection, unavailable items, guest merge)
 - `/checkout` — per-group payment method and checkout orchestration
 - `/api/cart`, `/api/cart/items/:lineId`, `/api/cart/merge`, `/api/cart/guest`
 - `/api/checkout`, `/api/orders/:orderId`
 
 ### Architecture and data flow
+
 - Domain types: `src/types/cart.ts`
 - Pure cart logic: `src/lib/cart/index.ts` (normalization, grouping, subtotals, wellness/unavailable rules)
 - Merge policy: `src/lib/cart/merge.ts`
@@ -261,11 +268,13 @@ Routes:
 - Data source: `src/data/task2-cart.json` accessed only via the mock API layer
 
 ### Mock API and failure injection
+
 All endpoints simulate 150–200ms latency. Add `?simulateFailure=true` to any URL to force a 500. Checkout also supports `?paymentDecline=true` (402), `?checkoutOutcome=failed|pending` (201 with that status). These controls are dev-only query flags, not exposed in the normal UI.
 
 In-memory state resets on server restart; this is a frontend take-home mock, not a durable ledger.
 
 ### Cart grouping and currency subtotals
+
 - Items grouped by the `type` provided by the cart API.
 - `itemCount` is the sum of quantities, not the number of lines.
 - Each group shows subtotals per currency; no grand total mixes currencies.
@@ -274,9 +283,11 @@ In-memory state resets on server restart; this is a frontend take-home mock, not
 - Empty `product` (provider removed service) is marked unavailable, excluded from pricing, cannot be checked out, and is removable.
 
 ### Guest-cart merge rules
+
 Inspected the supplied fixture: guest item 0 overlaps a server line (same productId), item 1 is new, item 2 is wellness with a selected duration, item 3 references a product not in the catalog.
 
 Policy (implemented in `mergeGuestCart`, unit-tested):
+
 - Match by `productId`.
 - Overlapping item with the same wellness option (or both non-wellness): combine quantities.
 - Wellness items with differing or missing selected option: added as a separate line (not silently combined).
@@ -287,9 +298,11 @@ Policy (implemented in `mergeGuestCart`, unit-tested):
 - Returns a `changes[]` array consumed by the UI merge summary modal.
 
 ### Checkout state machine
+
 States: `ready`, `blocked`, `submitting`, `pending`, `paid`, `failed`, `needs_attention`.
 
 Transitions:
+
 ```
 ready -> submitting
 submitting -> paid | pending | failed | needs_attention
@@ -298,9 +311,11 @@ needs_attention -> pending | paid | failed | submitting
 failed -> submitting  (retry, same idempotency key)
 blocked -> ready      (after resolving the blocking item)
 ```
+
 Transitions are centralized in `src/lib/checkout/state.ts` and covered by tests.
 
 ### Idempotency
+
 - Each logical group checkout attempt gets a stable idempotency key generated in `makeAttempt`.
 - The key is persisted in sessionStorage before the request is sent (via `persistAttempts`).
 - Retrying a failed/uncertain group reuses the same key.
@@ -308,15 +323,18 @@ Transitions are centralized in `src/lib/checkout/state.ts` and covered by tests.
 - A 500/timeout leaves the attempt in `needs_attention` and reuses the key on retry; no new logical attempt is created.
 
 ### Reload recovery
+
 - Checkout attempt metadata (group, key, items, payment method, known order IDs/statuses) is persisted to sessionStorage.
 - On reload, known orders are re-queried via `GET /orders/:orderId` and reconciled (`pending`/`paid`/`failed`).
 - Successful groups are never restarted; only failed/uncertain groups may be retried.
 - Client storage is not a secure or durable payment ledger; production order state must be authoritative on the backend.
 
 ### Partial failure handling
+
 Groups are processed sequentially (not `Promise.all`), so a failure in group N preserves prior successes. The UI shows per-group state and offers "Retry failed groups", which re-runs only failed/needs-attention groups using their existing idempotency keys.
 
 ### Tests
+
 - `src/lib/cart/index.test.ts` — grouping, item counts, multi-currency subtotals, wellness pricing, unavailable items.
 - `src/lib/cart/merge.test.ts` — merge cases (overlap, new, unavailable, invalid quantity, wellness).
 - `src/lib/checkout/state.test.ts` — state machine transitions and reconciliation.
@@ -324,6 +342,7 @@ Groups are processed sequentially (not `Promise.all`), so a failure in group N p
 Run: `npm test`. Type check: `npx tsc --noEmit`. Lint: `npm run lint`. Build: `npm run build`. All pass with 0 errors (warnings only in pre-existing Task 1 code).
 
 ### AI usage (Task 2)
+
 Task 2 was implemented with assistance from an AI coding agent (OpenCode/Beam). The AI helped with scaffolding types, pure domain logic, mock API, UI, tests, and README. All code was reviewed, type-checked, linted, built, and tests run.
 
 ## AI Usage
