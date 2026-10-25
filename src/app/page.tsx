@@ -34,11 +34,26 @@ export default function HomePage() {
               </Card>
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-4 flex-wrap">
               <Button type="primary" size="large" onClick={() => router.push("/services")}>
                 Browse Services
               </Button>
+              <Button size="large" onClick={() => router.push("/cart")}>
+                Open Cart & Checkout
+              </Button>
             </div>
+
+            <Card size="small" title="Task 2 — Multi-provider Cart & Split Checkout">
+              <Text>
+                Manage a multi-provider, multi-currency cart, merge a guest cart, and check out each group as a
+                separate order with its own payment method.
+              </Text>
+              <div className="mt-3">
+                <Button type="link" onClick={() => router.push("/cart")}>
+                  Go to cart
+                </Button>
+              </div>
+            </Card>
           </Space>
         </Card>
       </div>
