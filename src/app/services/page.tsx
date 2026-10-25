@@ -17,10 +17,13 @@ import {
   Input,
   InputNumber,
   Modal,
+  Pagination,
+  Rate,
   Select,
   Skeleton,
   Space,
   Switch,
+  Tag,
   Typography,
 } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -395,104 +398,186 @@ export default function ServiceExplorer() {
         {/* Desktop filters */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           <div className="lg:col-span-1 space-y-4">
-            <Card title="Filters" size="small">
-              <Space direction="vertical" style={{ width: "100%" }}>
-                <Input.Search
-                  placeholder="Search services"
-                  value={filterState.searchQuery}
-                  onChange={(e) =>
-                    handleFilterChange({ searchQuery: e.target.value })
-                  }
-                  allowClear
-                />
-                <Select
-                  mode="multiple"
-                  placeholder="Service type"
-                  style={{ width: "100%" }}
-                  value={[...filterState.serviceTypes]}
-                  onChange={(vals) =>
-                    handleFilterChange({ serviceTypes: new Set(vals) })
-                  }
-                  options={serviceTypeOptions}
-                />
-                <Select
-                  mode="multiple"
-                  placeholder="Category"
-                  style={{ width: "100%" }}
-                  value={[...filterState.categories]}
-                  onChange={(vals) =>
-                    handleFilterChange({ categories: new Set(vals) })
-                  }
-                  options={categoryOptions}
-                />
-                <Select
-                  mode="multiple"
-                  placeholder="Provider"
-                  style={{ width: "100%" }}
-                  showSearch
-                  value={[...filterState.providers]}
-                  onChange={(vals) =>
-                    handleFilterChange({ providers: new Set(vals) })
-                  }
-                  options={providerOptions}
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                />
-                <Select
-                  mode="multiple"
-                  placeholder="City"
-                  style={{ width: "100%" }}
-                  value={[...filterState.cities]}
-                  onChange={(vals) =>
-                    handleFilterChange({ cities: new Set(vals) })
-                  }
-                  options={cityOptions}
-                />
-                <Select
-                  mode="multiple"
-                  placeholder="Country"
-                  style={{ width: "100%" }}
-                  value={[...filterState.countries]}
-                  onChange={(vals) =>
-                    handleFilterChange({ countries: new Set(vals) })
-                  }
-                  options={countryOptions}
-                />
-                <Space>
-                  <InputNumber
-                    placeholder="Min price"
-                    value={filterState.priceMin ?? undefined}
+            <Card
+              title={
+                <div className="flex items-center justify-between py-1">
+                  <span className="font-semibold text-gray-800 tracking-tight">
+                    Filters
+                  </span>
+                  <Button
+                    type="link"
+                    size="small"
+                    danger
+                    className="p-0 text-xs font-medium hover:opacity-80"
+                    onClick={() => {
+                      setFilterState(parseFilterState(new URLSearchParams()));
+                      router.replace("?", { scroll: false });
+                    }}
+                  >
+                    Reset all
+                  </Button>
+                </div>
+              }
+              size="small"
+              className="shadow-sm rounded-xl border border-gray-100 overflow-hidden"
+              styles={{ body: { padding: "16px" } }}
+            >
+              <Space direction="vertical" style={{ width: "100%" }} size={14}>
+                {/* Search & Sort Group */}
+                <div className="space-y-3">
+                  <Input.Search
+                    placeholder="Search services..."
+                    value={filterState.searchQuery}
+                    onChange={(e) =>
+                      handleFilterChange({ searchQuery: e.target.value })
+                    }
+                    allowClear
+                    className="rounded-lg"
+                  />
+
+                  <Select
+                    placeholder="Sort by"
+                    style={{ width: "100%" }}
+                    value={filterState.sortOption}
                     onChange={(v) =>
-                      handleFilterChange({ priceMin: v ?? null })
+                      handleFilterChange({ sortOption: v as SortOption })
+                    }
+                    options={[
+                      { value: "relevance", label: "Relevance" },
+                      { value: "priceLow", label: "Price: low to high" },
+                      { value: "priceHigh", label: "Price: high to low" },
+                      { value: "rating", label: "Rating" },
+                    ]}
+                  />
+                </div>
+
+                <div className="border-t border-gray-100 my-1" />
+
+                {/* Categories & Classification Group */}
+                <div className="flex flex-col gap-3">
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Categories
+                  </div>
+                  <Select
+                    mode="multiple"
+                    placeholder="Service type"
+                    style={{ width: "100%" }}
+                    maxTagCount="responsive"
+                    value={[...filterState.serviceTypes]}
+                    onChange={(vals) =>
+                      handleFilterChange({ serviceTypes: new Set(vals) })
+                    }
+                    options={serviceTypeOptions}
+                  />
+                  <Select
+                    mode="multiple"
+                    placeholder="Category"
+                    style={{ width: "100%" }}
+                    maxTagCount="responsive"
+                    value={[...filterState.categories]}
+                    onChange={(vals) =>
+                      handleFilterChange({ categories: new Set(vals) })
+                    }
+                    options={categoryOptions}
+                  />
+                  <Select
+                    mode="multiple"
+                    placeholder="Provider"
+                    style={{ width: "100%" }}
+                    maxTagCount="responsive"
+                    showSearch
+                    value={[...filterState.providers]}
+                    onChange={(vals) =>
+                      handleFilterChange({ providers: new Set(vals) })
+                    }
+                    options={providerOptions}
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
                     }
                   />
-                  <InputNumber
-                    placeholder="Max price"
-                    value={filterState.priceMax ?? undefined}
-                    onChange={(v) =>
-                      handleFilterChange({ priceMax: v ?? null })
+                </div>
+
+                <div className="border-t border-gray-100 my-1" />
+
+                {/* Location Group */}
+                <div className="flex flex-col gap-3">
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Location
+                  </div>
+                  <Select
+                    mode="multiple"
+                    placeholder="City"
+                    style={{ width: "100%" }}
+                    maxTagCount="responsive"
+                    value={[...filterState.cities]}
+                    onChange={(vals) =>
+                      handleFilterChange({ cities: new Set(vals) })
                     }
+                    options={cityOptions}
                   />
-                </Space>
-                <Select
-                  placeholder="Currency"
-                  style={{ width: "100%" }}
-                  value={filterState.priceCurrency ?? undefined}
-                  onChange={(v) =>
-                    handleFilterChange({ priceCurrency: v ?? null })
-                  }
-                  allowClear
-                  options={[
-                    { value: "THB", label: "THB" },
-                    { value: "NPR", label: "NPR" },
-                    { value: "INR", label: "INR" },
-                  ]}
-                />
-                <div className="flex items-center justify-between">
-                  <Text>Home test available</Text>
+                  <Select
+                    mode="multiple"
+                    placeholder="Country"
+                    style={{ width: "100%" }}
+                    maxTagCount="responsive"
+                    value={[...filterState.countries]}
+                    onChange={(vals) =>
+                      handleFilterChange({ countries: new Set(vals) })
+                    }
+                    options={countryOptions}
+                  />
+                </div>
+
+                <div className="border-t border-gray-100 my-1" />
+
+                {/* Pricing Group */}
+                <div className="space-y-3">
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Price Range
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <InputNumber
+                      placeholder="Min price"
+                      className="w-full"
+                      value={filterState.priceMin ?? undefined}
+                      onChange={(v) =>
+                        handleFilterChange({ priceMin: v ?? null })
+                      }
+                    />
+                    <InputNumber
+                      placeholder="Max price"
+                      className="w-full"
+                      value={filterState.priceMax ?? undefined}
+                      onChange={(v) =>
+                        handleFilterChange({ priceMax: v ?? null })
+                      }
+                    />
+                  </div>
+                  <Select
+                    placeholder="Currency"
+                    style={{ width: "100%" }}
+                    value={filterState.priceCurrency ?? undefined}
+                    onChange={(v) =>
+                      handleFilterChange({ priceCurrency: v ?? null })
+                    }
+                    allowClear
+                    options={[
+                      { value: "THB", label: "THB" },
+                      { value: "NPR", label: "NPR" },
+                      { value: "INR", label: "INR" },
+                    ]}
+                  />
+                </div>
+
+                <div className="border-t border-gray-100 my-1" />
+
+                {/* Toggles */}
+                <div className="flex items-center justify-between py-1">
+                  <Text className="text-sm font-medium text-gray-700">
+                    Home test available
+                  </Text>
                   <Switch
                     checked={filterState.testAtHome === true}
                     onChange={(checked) =>
@@ -500,143 +585,208 @@ export default function ServiceExplorer() {
                     }
                   />
                 </div>
-                <Select
-                  placeholder="Sort by"
-                  style={{ width: "100%" }}
-                  value={filterState.sortOption}
-                  onChange={(v) =>
-                    handleFilterChange({ sortOption: v as SortOption })
-                  }
-                  options={[
-                    { value: "relevance", label: "Relevance" },
-                    { value: "priceLow", label: "Price: low to high" },
-                    { value: "priceHigh", label: "Price: high to low" },
-                    { value: "rating", label: "Rating" },
-                  ]}
-                />
-                <Button
-                  type="primary"
-                  danger
-                  onClick={() => {
-                    setFilterState(parseFilterState(new URLSearchParams()));
-                    router.replace("?", { scroll: false });
-                  }}
-                >
-                  Reset filters
-                </Button>
               </Space>
             </Card>
           </div>
 
           <div className="lg:col-span-3 space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <Text strong>{visibleServices.length} services found</Text>
-            </div>
-
             {pagedGroups.length > 0 ? (
-              pagedGroups.map((group, idx) => (
-                <Card key={idx} className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <Text strong>
-                      {group.provider.providerInformation.companyName}
-                    </Text>
-                    <Text type="secondary">
-                      {group.provider.providerInformation.rating ?? "No rating"}
-                      ★ ({group.provider.providerInformation.reviewCount}{" "}
-                      reviews)
-                    </Text>
-                  </div>
-                  <Text type="secondary" className="block mb-3">
-                    {group.provider.providerInformation.city.name},{" "}
-                    {group.provider.providerInformation.country.name}
-                  </Text>
-                  <Space direction="vertical" style={{ width: "100%" }}>
-                    {group.services.slice(0, 3).map((service, sIdx) => (
-                      <div
-                        key={sIdx}
-                        className="flex items-center justify-between py-2 border-b last:border-0"
+              pagedGroups.map((group, idx) => {
+                const info = group.provider.providerInformation;
+                return (
+                  <Card
+                    key={idx}
+                    className="mb-4 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl border border-gray-100"
+                    styles={{ body: { padding: "20px" } }}
+                  >
+                    {/* Header: Company Name & Rating */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <Text
+                        strong
+                        className="text-lg text-gray-800 tracking-tight"
                       >
-                        <div>
-                          <Text>{service.title}</Text>
-                          <div className="text-xs text-gray-500">
-                            {service.type}
-                          </div>
-                        </div>
-                        <Text>{service.price ?? "-"}</Text>
+                        {info.companyName}
+                      </Text>
+                      <div className="flex items-center gap-2">
+                        <Text type="secondary" className="text-xs font-medium">
+                          ({info.rating ?? 0})
+                        </Text>
+                        <Rate
+                          disabled
+                          allowHalf
+                          value={info.rating ?? 0}
+                          className="text-amber-400 text-sm"
+                        />
+                        <Text type="secondary" className="text-xs font-medium">
+                          ({info.reviewCount ?? 0} Reviews)
+                        </Text>
                       </div>
-                    ))}
-                  </Space>
-                  {group.total > 3 && (
-                    <Button
-                      type="link"
-                      size="small"
-                      className="mt-2"
-                      onClick={() => {
-                        setModalProvider(group.provider);
-                        setModalOpen(true);
-                      }}
-                    >
-                      View all {group.total} services
-                    </Button>
-                  )}
-                </Card>
-              ))
+                    </div>
+
+                    {/* Location subtitle */}
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-4 font-medium">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      <span>
+                        {info.city.name}, {info.country.name}
+                      </span>
+                    </div>
+
+                    {/* Services List Preview */}
+                    <div className="bg-gray-50/60 rounded-lg p-3 border border-gray-100 mb-3">
+                      <Space
+                        direction="vertical"
+                        style={{ width: "100%" }}
+                        size={8}
+                      >
+                        {group.services.slice(0, 3).map((service, sIdx) => (
+                          <div
+                            key={sIdx}
+                            className="flex items-center justify-between py-1.5 border-b border-gray-200/60 last:border-0 last:pb-0 first:pt-0"
+                          >
+                            <div>
+                              <Text className="text-sm font-medium text-gray-700">
+                                {service.title}
+                              </Text>
+                              <div className="text-[11px] text-gray-400 font-medium uppercase tracking-wider">
+                                {service.type}
+                              </div>
+                            </div>
+                            <Text className="font-semibold text-gray-800">
+                              {service.price ? `$${service.price}` : "-"}
+                            </Text>
+                          </div>
+                        ))}
+                      </Space>
+                    </div>
+
+                    {/* Footer / View All Button */}
+                    {group.total > 3 && (
+                      <div className="flex justify-end">
+                        <Button
+                          type="primary"
+                          ghost
+                          size="small"
+                          className="rounded-md font-medium text-xs px-3 h-8 hover:shadow-sm"
+                          onClick={() => {
+                            setModalProvider(group.provider);
+                            setModalOpen(true);
+                          }}
+                        >
+                          View all {group.total} services →
+                        </Button>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })
             ) : (
-              <Card>
-                <Text type="secondary">
-                  No services match your criteria. Try adjusting filters.
+              <Card className="rounded-xl border-dashed border-gray-200 text-center py-10">
+                <Text type="secondary" className="text-sm">
+                  No services match your criteria. Try adjusting your filters.
                 </Text>
               </Card>
             )}
 
             {totalGroupPages > 1 && (
-              <div className="flex items-center justify-center gap-3 mt-6">
-                <Button
-                  disabled={currentGroupPage <= 1}
-                  onClick={() =>
-                    handleFilterChange({ page: currentGroupPage - 1 })
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  current={currentGroupPage}
+                  total={totalGroupPages * 10} // Assuming 10 items per page; or replace with your exact total items count
+                  pageSize={10}
+                  showTotal={(total, range) =>
+                    `${range[0]}-${range[1]} of ${total} providers`
                   }
-                >
-                  Previous
-                </Button>
-                <Text>
-                  Page {currentGroupPage} of {totalGroupPages}
-                </Text>
-                <Button
-                  disabled={currentGroupPage >= totalGroupPages}
-                  onClick={() =>
-                    handleFilterChange({ page: currentGroupPage + 1 })
-                  }
-                >
-                  Next
-                </Button>
+                  showSizeChanger={false}
+                  onChange={(page) => handleFilterChange({ page })}
+                />
               </div>
             )}
+
+            <div className="flex items-center justify-end mb-3">
+              <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                <Text className="text-sm text-gray-500">Services found</Text>
+                <span className="inline-flex min-w-7 items-center justify-center rounded-md bg-blue-100 px-2 py-1 text-sm font-semibold text-blue-700">
+                  {visibleServices.length}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Services modal */}
         <Modal
-          title={modalProvider?.providerInformation.companyName}
+          title={
+            <div className="pb-2 border-b border-gray-100">
+              <div className="text-xl font-bold text-gray-800 tracking-tight">
+                {modalProvider?.providerInformation.companyName ||
+                  "Provider Services"}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                {modalProvider?.providerInformation.rating && (
+                  <div className="flex items-center gap-1 text-xs text-amber-500 font-semibold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
+                    ★ {modalProvider.providerInformation.rating}
+                  </div>
+                )}
+                <Tag
+                  color="blue"
+                  className="rounded-full text-xs font-medium px-2.5"
+                >
+                  {modalServices.length}{" "}
+                  {modalServices.length === 1 ? "Service" : "Services"}{" "}
+                  Available
+                </Tag>
+              </div>
+            </div>
+          }
           open={modalOpen}
           onCancel={() => setModalOpen(false)}
-          footer={null}
-          width={720}
+          width={680}
+          centered
+          footer={false}
+          styles={{
+            body: {
+              maxHeight: "60vh",
+              overflowY: "auto",
+              paddingRight: "6px",
+              paddingTop: "16px",
+              paddingBottom: "16px",
+            },
+          }}
         >
-          <Space direction="vertical" style={{ width: "100%" }}>
-            {modalServices.map((service: Service, idx: number) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between py-2 border-b last:border-0"
-              >
-                <div>
-                  <Text>{service.title}</Text>
-                  <div className="text-xs text-gray-500">{service.type}</div>
+          {modalServices.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {modalServices.map((service: Service, idx: number) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3.5 bg-gray-50/70 hover:bg-gray-100/80 transition-all duration-200 rounded-xl border border-gray-200/60 group"
+                >
+                  <div className="flex flex-col gap-1 pr-4">
+                    <Text className="text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                      {service.title}
+                    </Text>
+                    <div>
+                      <span className="inline-block text-[10px] font-semibold tracking-wider text-gray-500 bg-gray-200/70 px-2 py-0.5 rounded-md uppercase">
+                        {service.type}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <Text className="text-base font-bold text-gray-900 bg-white px-3 py-1 rounded-lg border border-gray-200 shadow-sm inline-block">
+                      {service.price
+                        ? `$${service.price}`
+                        : "Price Not Available"}
+                    </Text>
+                  </div>
                 </div>
-                <Text>{service.price ?? "-"}</Text>
-              </div>
-            ))}
-          </Space>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Text type="secondary" className="text-sm">
+                No additional services available for this provider.
+              </Text>
+            </div>
+          )}
         </Modal>
       </div>
     </div>
