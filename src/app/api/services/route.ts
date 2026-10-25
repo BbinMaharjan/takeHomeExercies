@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server";
 import { dataset } from "@/lib/dataset";
-import type { Service, Provider } from "@/types/domain";
+import type { Service, Category, SubCategory } from "@/types/domain";
 import { parseMoney } from "@/lib/pricing/calculate";
 
 const providerMap = new Map(dataset.providers.map((p) => [p.id, p]));
-const categoryMap = new Map<string, any>();
+const categoryMap = new Map<string, Category | SubCategory>();
 for (const cat of dataset.categories) {
   // flatten categories including children
   categoryMap.set(cat.id, cat);
@@ -35,7 +35,20 @@ function servicePrice(svc: Service): number | null {
   return parseMoney(svc.price);
 }
 
-function matchesFilters(svc: Service, filters: any, selectedCurrency?: string | null) {
+interface Filters {
+  serviceType?: string[];
+  categorySlug?: string;
+  categoryType?: string;
+  providerIds?: number[];
+  city?: string;
+  country?: string;
+  priceMin?: number;
+  priceMax?: number;
+  priceCurrency?: string;
+  availableAsHomeTest?: boolean;
+  freeText?: string;
+}
+function matchesFilters(svc: Service, filters: Filters, selectedCurrency?: string | null) {
   if (filters.serviceType && filters.serviceType.length > 0) {
     if (!filters.serviceType.includes(svc.type)) return false;
   }
@@ -43,7 +56,7 @@ function matchesFilters(svc: Service, filters: any, selectedCurrency?: string | 
   if (filters.categorySlug && filters.categoryType) {
     // category filter by slug+type
     const cat = dataset.categories.find(
-      (c: any) => c.slug === filters.categorySlug && c.type === filters.categoryType,
+      (c: Category) => c.slug === filters.categorySlug && c.type === filters.categoryType,
     );
     // also search children
     let match = false;
@@ -117,7 +130,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Parse filters
-  const filters: any = {};
+  const filters: Filters = {};
   const typeVals = searchParams.getAll("type");
   if (typeVals.length > 0) filters.serviceType = typeVals;
   // also service_type
@@ -161,7 +174,7 @@ export async function GET(request: NextRequest) {
   const sortDir = (searchParams.get("sortDir") || "asc") as string;
 
   // Filter
-  let results = dataset.services.filter((svc) => {
+  const results = dataset.services.filter((svc) => {
     if (!isVisible(svc)) return false;
     return matchesFilters(svc, filters, selectedCurrency);
   });
