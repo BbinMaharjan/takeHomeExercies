@@ -1,0 +1,572 @@
+{
+ "_readme": "Fictional data. serverCart follows GET /v2/cart. guestCart is what a guest has stored locally before logging in. catalog is what can be added to the cart.",
+ "catalog": [
+  {
+   "id": "5f0c1a52-6b1e-4c1f-9a51-000000000001",
+   "title": "Executive Health Check (Male)",
+   "type": "package",
+   "currency": "THB",
+   "providerId": 48,
+   "providerName": "Riverside International Hospital",
+   "price": 5970.6
+  },
+  {
+   "id": "5f0c1a52-6b1e-4c1f-9a51-000000000002",
+   "title": "Basic Blood Panel",
+   "type": "lab_test",
+   "currency": "NPR",
+   "providerId": 46,
+   "providerName": "Himal Neo Clinic",
+   "price": 3000.0
+  },
+  {
+   "id": "5f0c1a52-6b1e-4c1f-9a51-000000000003",
+   "title": "Signature Facial",
+   "type": "wellness",
+   "currency": "THB",
+   "providerId": 61,
+   "providerName": "Lotus Day Spa",
+   "price": null,
+   "priceUnknown": true,
+   "wellnessPricing": [
+    {
+     "id": "a1b2c3d4-0000-4000-8000-000000000060",
+     "durationInMinutes": 60,
+     "amount_after_service_charge": 1800.0
+    },
+    {
+     "id": "a1b2c3d4-0000-4000-8000-000000000090",
+     "durationInMinutes": 90,
+     "amount_after_service_charge": 2040.0
+    }
+   ]
+  },
+  {
+   "id": "6a92d368-a25a-4e00-89ce-77d69da06b45",
+   "title": "Lipid Profile",
+   "type": "lab_test",
+   "currency": "THB",
+   "providerId": 134,
+   "providerName": "Lotus Pathology",
+   "price": 984.4
+  },
+  {
+   "id": "53c08229-d42d-4121-a18d-e84bd7d1a079",
+   "title": "CBC Profile",
+   "type": "lab_test",
+   "currency": "THB",
+   "providerId": 134,
+   "providerName": "Lotus Pathology",
+   "price": 1677.0
+  },
+  {
+   "id": "1a47bdb1-d3d5-4c4c-9cca-18d9d72c576a",
+   "title": "Kidney Function Test",
+   "type": "lab_test",
+   "currency": "THB",
+   "providerId": 105,
+   "providerName": "Kailash Medical Centre",
+   "price": 5958.75
+  },
+  {
+   "id": "866a126f-a1c8-4027-b8c6-0681464823d5",
+   "title": "Home Hepatitis B Test",
+   "type": "lab_test",
+   "currency": "THB",
+   "providerId": 132,
+   "providerName": "Andaman Diagnostics",
+   "price": 6090.0
+  },
+  {
+   "id": "337903f9-6eaf-4a18-810a-d3d3203f185f",
+   "title": "Home Hepatitis B Test",
+   "type": "lab_test",
+   "currency": "THB",
+   "providerId": 131,
+   "providerName": "Ganges Diagnostics",
+   "price": 8442.0
+  },
+  {
+   "id": "7bcdaf5b-7874-4061-83ee-ef9c954ffcaf",
+   "title": "Liver Function Profile",
+   "type": "lab_test",
+   "currency": "NPR",
+   "providerId": 137,
+   "providerName": "Lalit Diagnostics",
+   "price": 4760.0
+  },
+  {
+   "id": "6cda0be1-9c2b-4a51-9e94-cd809b4da963",
+   "title": "Vitamin D Panel",
+   "type": "lab_test",
+   "currency": "NPR",
+   "providerId": 136,
+   "providerName": "Coral Diagnostics",
+   "price": 6979.0
+  },
+  {
+   "id": "48926f1e-9d1e-4562-9cbf-7f97ae334be2",
+   "title": "Thyroid Function Test",
+   "type": "lab_test",
+   "currency": "NPR",
+   "providerId": 136,
+   "providerName": "Coral Diagnostics",
+   "price": 24566.5
+  },
+  {
+   "id": "06a9bb3e-123a-4746-a0e3-5149fe9d2fdd",
+   "title": "Home Iron Studies Test",
+   "type": "lab_test",
+   "currency": "NPR",
+   "providerId": 116,
+   "providerName": "Aravali Medical Centre",
+   "price": 19905.0
+  },
+  {
+   "id": "39e2ac98-f28b-4c9b-b7db-df93f5ad2d40",
+   "title": "Comprehensive Health Check",
+   "type": "package",
+   "currency": "THB",
+   "providerId": 102,
+   "providerName": "Tamarind Medical Centre",
+   "price": 15230.0
+  },
+  {
+   "id": "ffdce1cb-b947-48e5-8cb2-213226effb7f",
+   "title": "Premium Health Check",
+   "type": "package",
+   "currency": "THB",
+   "providerId": 107,
+   "providerName": "Lumbini Medical Centre",
+   "price": 11360.0
+  },
+  {
+   "id": "4280ce04-2aa5-4eca-8e6d-c3366e82ef59",
+   "title": "Platinum Screening",
+   "type": "package",
+   "currency": "THB",
+   "providerId": 102,
+   "providerName": "Tamarind Medical Centre",
+   "price": 4664.0
+  },
+  {
+   "id": "bd76914a-87c0-4dc7-8ef5-5bfa03fbc87c",
+   "title": "Basic Screening",
+   "type": "package",
+   "currency": "THB",
+   "providerId": 100,
+   "providerName": "Bluebell Hospital",
+   "price": 16030.0
+  },
+  {
+   "id": "8ea394c5-41f8-4849-b408-244d42266825",
+   "title": "Pre-Employment Check-Up Package",
+   "type": "package",
+   "currency": "THB",
+   "providerId": 113,
+   "providerName": "Orchid International Hospital",
+   "price": 16956.0
+  },
+  {
+   "id": "3acef368-9ba1-4b1f-b704-78c5b5e8ba56",
+   "title": "Annual Screening",
+   "type": "package",
+   "currency": "NPR",
+   "providerId": 114,
+   "providerName": "Bluebell Medical Centre",
+   "price": 51765.0
+  },
+  {
+   "id": "8a86eb14-8541-46d5-927c-52ad4c2d1366",
+   "title": "Annual Health Check",
+   "type": "package",
+   "currency": "NPR",
+   "providerId": 117,
+   "providerName": "Banyan Hospital",
+   "price": 31560.0
+  },
+  {
+   "id": "0cd87561-465a-402a-8d6f-cb4f844f0fff",
+   "title": "Essential Health Check",
+   "type": "package",
+   "currency": "NPR",
+   "providerId": 120,
+   "providerName": "Teak Hospital",
+   "price": 39830.0
+  },
+  {
+   "id": "f5287914-012c-415a-8a4f-2bd724ca800a",
+   "title": "Pre-Employment Health Check",
+   "type": "package",
+   "currency": "INR",
+   "providerId": 123,
+   "providerName": "Saffron Polyclinic",
+   "price": 18749.0
+  },
+  {
+   "id": "de2d68b0-37b0-476f-8512-7e40fe2b8651",
+   "title": "Pre-Employment Screening",
+   "type": "package",
+   "currency": "INR",
+   "providerId": 123,
+   "providerName": "Saffron Polyclinic",
+   "price": 43155.0
+  },
+  {
+   "id": "ae3700e0-7d54-4242-9409-033e50462304",
+   "title": "Basic Screening",
+   "type": "package",
+   "currency": "INR",
+   "providerId": 124,
+   "providerName": "Silk Route International Hospital",
+   "price": 23009.5
+  },
+  {
+   "id": "f9742a46-d772-4f71-94fa-399ae3607cf9",
+   "title": "Foot Reflexology",
+   "type": "wellness",
+   "currency": "THB",
+   "providerId": 148,
+   "providerName": "Teak Day Spa",
+   "price": null,
+   "priceUnknown": true,
+   "wellnessPricing": [
+    {
+     "id": "a115d6fa-0449-4686-b46f-1537a87b809a",
+     "durationInMinutes": 30,
+     "amount_after_service_charge": 2070.0
+    },
+    {
+     "id": "0d1394e0-cf4c-45ca-8d94-4c575dfe0ee8",
+     "durationInMinutes": 120,
+     "amount_after_service_charge": 8300.0
+    }
+   ]
+  },
+  {
+   "id": "c6d70324-42a0-486a-b76b-6117e3257ddd",
+   "title": "Hot Stone Massage Ritual",
+   "type": "wellness",
+   "currency": "THB",
+   "providerId": 61,
+   "providerName": "Lotus Day Spa",
+   "price": null,
+   "priceUnknown": true,
+   "wellnessPricing": [
+    {
+     "id": "f1420282-2278-4766-901f-477c15c4c67c",
+     "durationInMinutes": 30,
+     "amount_after_service_charge": 1540.0
+    },
+    {
+     "id": "73157062-7a4e-498a-aca5-6f5904298b38",
+     "durationInMinutes": 60,
+     "amount_after_service_charge": 3070.0
+    },
+    {
+     "id": "e171c2f0-310b-44bf-a5b9-5853f74cda8c",
+     "durationInMinutes": 120,
+     "amount_after_service_charge": 5227.5
+    }
+   ]
+  },
+  {
+   "id": "bcdb822e-f4c6-4126-9801-ee030ea9b48c",
+   "title": "Aromatherapy Massage Ritual",
+   "type": "wellness",
+   "currency": "THB",
+   "providerId": 151,
+   "providerName": "Kailash Day Spa",
+   "price": null,
+   "priceUnknown": true,
+   "wellnessPricing": [
+    {
+     "id": "bde1e9fe-79d0-446f-92b7-bedb166a5946",
+     "durationInMinutes": 30,
+     "amount_after_service_charge": 2150.0
+    },
+    {
+     "id": "038b3e12-c480-4f3a-b26d-cde1de6f30bc",
+     "durationInMinutes": 120,
+     "amount_after_service_charge": 7318.5
+    }
+   ]
+  },
+  {
+   "id": "3a1b885c-4ee3-426f-8d72-5c1aabbe657e",
+   "title": "Aromatherapy Massage",
+   "type": "wellness",
+   "currency": "THB",
+   "providerId": 144,
+   "providerName": "Mekong Day Spa",
+   "price": null,
+   "priceUnknown": true,
+   "wellnessPricing": [
+    {
+     "id": "9edbdb6f-c318-40d2-806c-874af0c8365b",
+     "durationInMinutes": 30,
+     "amount_after_service_charge": 1450.0
+    },
+    {
+     "id": "76e94b1d-7703-4fd8-9be7-f610efe0ef0c",
+     "durationInMinutes": 60,
+     "amount_after_service_charge": 2610.0
+    },
+    {
+     "id": "f4100356-9af9-4498-80c0-decfa2bb4f1c",
+     "durationInMinutes": 120,
+     "amount_after_service_charge": 4930.0
+    }
+   ]
+  },
+  {
+   "id": "81bfe682-1218-4ec7-9fbd-9d3545a079c6",
+   "title": "Signature Hot Stone Massage",
+   "type": "wellness",
+   "currency": "NPR",
+   "providerId": 154,
+   "providerName": "Orchid Wellness",
+   "price": null,
+   "priceUnknown": true,
+   "wellnessPricing": [
+    {
+     "id": "2a1ee842-ea57-4974-aa5d-c3fae4f553a5",
+     "durationInMinutes": 30,
+     "amount_after_service_charge": 2800.0
+    }
+   ]
+  },
+  {
+   "id": "ed90f3d2-d5c5-438f-90fa-27d6746f1ee5",
+   "title": "Thai Massage Ritual",
+   "type": "wellness",
+   "currency": "NPR",
+   "providerId": 155,
+   "providerName": "Tamarind Wellness",
+   "price": null,
+   "priceUnknown": true,
+   "wellnessPricing": [
+    {
+     "id": "de115ba7-4cec-41a9-8387-df7a521e220c",
+     "durationInMinutes": 90,
+     "amount_after_service_charge": 13450.0
+    },
+    {
+     "id": "f065eb0c-2b1b-4f09-9e06-2522f247851a",
+     "durationInMinutes": 120,
+     "amount_after_service_charge": 17940.0
+    }
+   ]
+  },
+  {
+   "id": "64312a53-f472-4fbf-bf58-553063ffd4f8",
+   "title": "Flu Vaccine",
+   "type": "service",
+   "currency": "THB",
+   "providerId": 110,
+   "providerName": "Bodhi Medical Centre",
+   "price": 1513.0
+  },
+  {
+   "id": "d38e56a6-c4a5-47b2-9cef-0237f1354821",
+   "title": "Flu Vaccine Appointment",
+   "type": "service",
+   "currency": "THB",
+   "providerId": 109,
+   "providerName": "Silk Route Hospital",
+   "price": 4170.0
+  },
+  {
+   "id": "c5237934-5ed9-4537-adb3-3b49dcf3089e",
+   "title": "Travel Vaccine Consult",
+   "type": "service",
+   "currency": "THB",
+   "providerId": 112,
+   "providerName": "Silk Route Medical Centre",
+   "price": 2970.0
+  },
+  {
+   "id": "45aedf7d-0e83-46df-9d29-06cea85ba256",
+   "title": "Travel Health Plan",
+   "type": "insurance",
+   "currency": "THB",
+   "providerId": 157,
+   "providerName": "Mekong Health Cover",
+   "price": 12095.5
+  },
+  {
+   "id": "8f7b2708-77a0-4409-af00-01a57bbfb8ca",
+   "title": "Outpatient Cover",
+   "type": "insurance",
+   "currency": "THB",
+   "providerId": 158,
+   "providerName": "Monsoon Health Cover",
+   "price": 10978.2
+  }
+ ],
+ "serverCart": {
+  "groups": [
+   {
+    "type": "lab_test",
+    "itemCount": 4,
+    "unpricedItems": 0,
+    "subtotals": {
+     "THB": 1677.0,
+     "NPR": 12520.0
+    },
+    "items": [
+     {
+      "id": "dbd4cac2-eb2b-4dc7-867e-0d5c13226036",
+      "productId": "53c08229-d42d-4121-a18d-e84bd7d1a079",
+      "quantity": 1,
+      "product": {
+       "id": "53c08229-d42d-4121-a18d-e84bd7d1a079",
+       "title": "CBC Profile",
+       "type": "lab_test",
+       "currency": "THB",
+       "providerId": 134,
+       "providerName": "Lotus Pathology",
+       "price": 1677.0
+      }
+     },
+     {
+      "id": "76d58b51-449b-4f90-a936-1b6008dcf67d",
+      "productId": "7bcdaf5b-7874-4061-83ee-ef9c954ffcaf",
+      "quantity": 2,
+      "product": {
+       "id": "7bcdaf5b-7874-4061-83ee-ef9c954ffcaf",
+       "title": "Liver Function Profile",
+       "type": "lab_test",
+       "currency": "NPR",
+       "providerId": 137,
+       "providerName": "Lalit Diagnostics",
+       "price": 4760.0
+      }
+     },
+     {
+      "id": "6caa435e-3e83-4c53-9e92-80b0f006a6eb",
+      "productId": "5f0c1a52-6b1e-4c1f-9a51-000000000002",
+      "quantity": 1,
+      "product": {
+       "id": "5f0c1a52-6b1e-4c1f-9a51-000000000002",
+       "title": "Basic Blood Panel",
+       "type": "lab_test",
+       "currency": "NPR",
+       "providerId": 46,
+       "providerName": "Himal Neo Clinic",
+       "price": 3000.0
+      }
+     }
+    ]
+   },
+   {
+    "type": "wellness",
+    "itemCount": 1,
+    "unpricedItems": 1,
+    "subtotals": {},
+    "items": [
+     {
+      "id": "e38e2e25-84d4-4843-85e8-a362c3dec25a",
+      "productId": "5f0c1a52-6b1e-4c1f-9a51-000000000003",
+      "quantity": 1,
+      "product": {
+       "id": "5f0c1a52-6b1e-4c1f-9a51-000000000003",
+       "title": "Signature Facial",
+       "type": "wellness",
+       "currency": "THB",
+       "providerId": 61,
+       "providerName": "Lotus Day Spa",
+       "price": null,
+       "priceUnknown": true,
+       "wellnessPricing": [
+        {
+         "id": "a1b2c3d4-0000-4000-8000-000000000060",
+         "durationInMinutes": 60,
+         "amount_after_service_charge": 1800.0
+        },
+        {
+         "id": "a1b2c3d4-0000-4000-8000-000000000090",
+         "durationInMinutes": 90,
+         "amount_after_service_charge": 2040.0
+        }
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "type": "package",
+    "itemCount": 2,
+    "unpricedItems": 0,
+    "subtotals": {
+     "THB": 15230.0,
+     "INR": 23009.5
+    },
+    "items": [
+     {
+      "id": "41441093-cddb-4322-9bc8-d4f4959646c1",
+      "productId": "39e2ac98-f28b-4c9b-b7db-df93f5ad2d40",
+      "quantity": 1,
+      "product": {
+       "id": "39e2ac98-f28b-4c9b-b7db-df93f5ad2d40",
+       "title": "Comprehensive Health Check",
+       "type": "package",
+       "currency": "THB",
+       "providerId": 102,
+       "providerName": "Tamarind Medical Centre",
+       "price": 15230.0
+      }
+     },
+     {
+      "id": "13068e11-594e-4a03-a7ec-2f0f8fc2dd01",
+      "productId": "ae3700e0-7d54-4242-9409-033e50462304",
+      "quantity": 1,
+      "product": {
+       "id": "ae3700e0-7d54-4242-9409-033e50462304",
+       "title": "Basic Screening",
+       "type": "package",
+       "currency": "INR",
+       "providerId": 124,
+       "providerName": "Silk Route International Hospital",
+       "price": 23009.5
+      }
+     }
+    ]
+   },
+   {
+    "type": "unknown",
+    "itemCount": 1,
+    "unpricedItems": 1,
+    "subtotals": {},
+    "items": [
+     {
+      "id": "7a15eb5e-0e1b-4cb1-9cf6-bd4344b569be",
+      "productId": "bb78f0a1-96d2-40ea-be8b-5c5f58a72931",
+      "quantity": 1,
+      "product": {}
+     }
+    ]
+   }
+  ],
+  "totalItems": 8
+ },
+ "guestCart": [
+  {
+   "productId": "7bcdaf5b-7874-4061-83ee-ef9c954ffcaf",
+   "quantity": 3
+  },
+  {
+   "productId": "6a92d368-a25a-4e00-89ce-77d69da06b45",
+   "quantity": 1
+  },
+  {
+   "productId": "5f0c1a52-6b1e-4c1f-9a51-000000000003",
+   "quantity": 1,
+   "wellnessPricingId": "a1b2c3d4-0000-4000-8000-000000000090"
+  },
+  {
+   "productId": "6b572fa4-4559-4dfd-a276-9c1400ce208e",
+   "quantity": 1
+  }
+ ]
+}
