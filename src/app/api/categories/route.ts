@@ -1,8 +1,9 @@
 import type { NextRequest } from "next/server";
 import { dataset } from "@/lib/dataset";
+import type { Category } from "@/types/domain";
 
 // Build category map for lookups (slug|type -> Category)
-const categoryMap = new Map<string, any>();
+const categoryMap = new Map<string, Category>();
 for (const cat of dataset.categories) {
   categoryMap.set(`${cat.slug}|${cat.type}`, cat);
 }
@@ -22,17 +23,17 @@ export async function GET(request: NextRequest) {
   // Accept a 'type' query param to filter categories by type
   const typeFilter = searchParams.get("type");
 
-  let categories: any[];
+  let categories: Category[];
   if (typeFilter) {
     categories = dataset.categories.filter(
-      (cat: any) => cat.type === typeFilter && cat.status === true
+      (cat: Category) => cat.type === typeFilter && cat.status === true
     );
   } else {
-    categories = dataset.categories.filter((cat: any) => cat.status === true);
+    categories = dataset.categories.filter((cat: Category) => cat.status === true);
   }
 
   // Attach parent category title for UI display
-  const enrichedCategories = categories.map((cat: any) => {
+  const enrichedCategories = categories.map((cat: Category) => {
     const enriched = {
       ...cat,
       parentTitle: cat.parentId

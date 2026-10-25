@@ -86,6 +86,7 @@ export interface Service {
  * Returns { categories, providers, services }.
  * Category identity uses (slug + type) as key, not slug alone.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function loadDataset(raw: any) {
   const categoriesRaw = raw.categories || [];
   const providersRaw = raw.providers || [];
@@ -94,6 +95,7 @@ export function loadDataset(raw: any) {
   const categoryMap = new Map<string, Category>();
   const categoryById = new Map<string, Category>();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function registerCategory(cat: any): Category {
     const existing = categoryById.get(cat.id);
     if (existing) return existing;
@@ -198,6 +200,7 @@ export function loadDataset(raw: any) {
   };
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function computeServiceVisibility(
   svc: any,
   catById: Map<string, Category>,
@@ -213,11 +216,13 @@ function computeServiceVisibility(
   }
   return true;
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // ---------------------------------------------------------------------------
 // Price parsing
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseServicePrices(rawPrices: any): ServicePriceDetails {
   const details: ServicePriceDetails = {
     basePrice: null,
@@ -242,7 +247,7 @@ function parseServicePrices(rawPrices: any): ServicePriceDetails {
     }
     if (details.wellnessPricing.length > 0) {
       const lowest = details.wellnessPricing.reduce(
-        (a: any, b: any) => (a.price < b.price ? a : b),
+        (a: { price: number }, b: { price: number }) => (a.price < b.price ? a : b),
         details.wellnessPricing[0]
       );
       details.basePrice = lowest.price;

@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { dataset } from "@/lib/dataset";
+import type { Provider } from "@/types/domain";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -17,24 +18,24 @@ export async function GET(request: NextRequest) {
   const city = searchParams.get("city");
   const country = searchParams.get("country");
 
-  let providers: any[] = dataset.providers.filter(
-    (p: any) => p.status === "active"
+  let providers: Provider[] = dataset.providers.filter(
+    (p: Provider) => p.status === "active"
   );
 
   if (city) {
     providers = providers.filter(
-      (p: any) => p.providerInformation.city.slug === city
+      (p: Provider) => p.providerInformation.city.slug === city
     );
   }
 
   if (country) {
     providers = providers.filter(
-      (p: any) => p.providerInformation.country.alphaCode === country
+      (p: Provider) => p.providerInformation.country.alphaCode === country
     );
   }
 
   // Sort by name for consistent UI
-  providers.sort((a: any, b: any) => a.name.localeCompare(b.name));
+  providers.sort((a: Provider, b: Provider) => a.name.localeCompare(b.name));
 
   return new Response(JSON.stringify({ providers }), {
     headers: { "Content-Type": "application/json" },

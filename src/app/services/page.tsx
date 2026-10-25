@@ -624,7 +624,7 @@ export default function ServiceExplorer() {
           width={720}
         >
           <Space direction="vertical" style={{ width: "100%" }}>
-            {modalServices.map((service: any, idx: any) => (
+            {modalServices.map((service: Service, idx: number) => (
               <div
                 key={idx}
                 className="flex items-center justify-between py-2 border-b last:border-0"
