@@ -1,8 +1,9 @@
 "use client";
 
-import { CompassOutlined } from "@ant-design/icons";
+import theme from "@/themes/themes";
+import { MedicineBoxFilled } from "@ant-design/icons";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Layout } from "antd";
+import { ConfigProvider, Layout } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -14,32 +15,34 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Layout style={{ minHeight: "100vh" }}>
-        <Header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            background: "#001529",
-            paddingInline: 24,
-          }}
-        >
-          <CompassOutlined style={{ fontSize: 24, color: "#ffffff" }} />
-          <span
+      <ConfigProvider theme={theme}>
+        <Layout style={{ minHeight: "100vh" }}>
+          <Header
             style={{
-              color: "#ffffff",
-              fontSize: 20,
-              fontWeight: 600,
-              lineHeight: "32px",
-              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              background: "#9C27B0",
+              paddingInline: 24,
             }}
-            onClick={() => router.push("/")}
           >
-            MedEx
-          </span>
-        </Header>
-        <Content style={{ padding: 0 }}>{children}</Content>
-      </Layout>
+            <MedicineBoxFilled style={{ fontSize: 30, color: "#ffffff" }} />
+            <span
+              style={{
+                color: "#ffffff",
+                fontSize: 20,
+                fontWeight: 600,
+                lineHeight: "32px",
+                cursor: "pointer",
+              }}
+              onClick={() => router.push("/")}
+            >
+              MedEx
+            </span>
+          </Header>
+          <Content style={{ padding: 0 }}>{children}</Content>
+        </Layout>
+      </ConfigProvider>
     </QueryClientProvider>
   );
 }
