@@ -356,3 +356,86 @@ This implementation was created with assistance from an AI coding agent (OpenCod
 - UI implementation
 
 All code has been reviewed, tested manually, and verified for correct behavior. No unverified claims of success or features are made.
+
+## Task 3 — Appointment Booking Across Time Zones
+
+### What it does
+
+Appointment booking flow with correct provider-local time handling. Customers select provider, specialist, date, number of people (1–4), and a start time, then confirm. Provider-local and customer-local times are shown side by side, including date changes. Existing bookings can be rescheduled with an explicit old-vs-new comparison. Route: `/booking`.
+
+### Architecture and data flow
+
+- Types: `src/types/booking.ts`
+- Time-zone normalization: `src/lib/timezone/index.ts` (tested)
+- Slot generation + group availability: `src/lib/booking/slots.ts` (tested)
+- Mock server state: `src/lib/server/bookingStore.ts`
+- API routes:
+  - `GET /api/booking/providers`
+  - `GET /api/providers/:id`
+  - `GET /api/providers/:id/slots?date=YYYY-MM-DD&specialistId=...`
+  - `POST /api/bookings`
+  - `GET /api/bookings/existing`
+  - `GET /api/bookings/:id`
+  - `PUT /api/bookings/:id`
+- UI: `src/app/booking/page.tsx`
+
+### Time-zone normalization
+
+Distinct source values in `data/task3-booking.json` and their normalization:
+
+| Source value | Normalized zone | Notes |
+| --- | --- | --- |
+| `Asia/Bangkok` | `Asia/Bangkok` | Valid IANA, unchanged. |
+| ` UTC+05:45` | `Asia/Kathmandu` | Trimmed; offset +05:45 mapped to Nepal zone. |
+| `Nepal Standard Time` | `Asia/Kathmandu` | Windows-style name via explicit map. |
+| `(GMT+5:45)` | `Asia/Kathmandu` | Parentheses stripped; offset parsed. |
+| `Asia/Katmandu ` | `Asia/Kathmandu` | Legacy alias normalized to canonical; trimmed. |
+| `` (empty) | country fallback | Aravali Hospital (IN) ? `Asia/Kolkata`. |
+
+Country-based fallbacks: TH ? `Asia/Bangkok`, NP ? `Asia/Kathmandu`, IN ? `Asia/Kolkata`. The normalized zone is kept separate from the original `timezoneSource` string for auditability. Validation uses `Intl.DateTimeFormat`; no browser-local fallback is used for provider schedules. Customer zone is derived from the browser (`Intl.DateTimeFormat().resolvedOptions().timeZone`) with `UTC` fallback.
+
+### Day offsets and provider-local dates
+
+`dayOffset` is relative to "today" in the provider's zone. The mock API computes `today` using the provider's normalized zone on each request, so offsets stay relative to the provider's clock and do not become stale across server restarts. `addDaysToDate` performs calendar-day arithmetic on the provider-local date string.
+
+### Slot generation and overlap
+
+- Missing `daySchedules` entry for a weekday ? provider closed.
+- Provider closures applied by matching converted date.
+- Specialist consultation window is intersected with provider opening hours; only the overlap is offered.
+- Candidate slots start at `consultation.startTime` and advance by `durationInMinutes + bufferInMinutes`.
+- A slot is valid only if it starts and ends within both specialist and provider windows (interval-boundary: ending exactly at closing time allowed, never after).
+- Today's already-started slots (by provider clock) are excluded.
+- Booked slots are shown but disabled with an accessible "Booked" label.
+
+### Group bookings
+
+Booking for N people requires N consecutive free slots in the generated specialist slot sequence. `availableGroupStarts` only returns a start time when all N adjacent slots are free. A booked slot breaks any sequence containing it. Groups beyond closing time are not offered.
+
+### Mock API
+
+All endpoints simulate 150–200ms latency. Query flags (dev-only):
+- `?simulateFailure=true` or `?failStatus=500` ? 500
+- `?simulateConflict=true` ? 409
+- `?latency=ms` ? override latency
+
+Server-side validation covers provider, specialist, date format/range, opening hours, slot existence, booked status, and group size. Availability is rechecked at submission; conflicts return 409 and preserve client selections.
+
+### Rescheduling
+
+`existingBooking` (BK-20261008-0042) is seeded as an in-memory booking. `PUT /api/bookings/:id` with `{ date, startTime }` updates it without creating a second booking. The UI shows current vs. new appointment in both zones before confirmation. On 409, selections are preserved and alternatives offered.
+
+### Tests
+
+- `src/lib/timezone/index.test.ts` — 13 tests (all distinct source values, offsets, Windows name, alias, empty/invalid fallback, conversion including midnight boundary).
+- `src/lib/booking/slots.test.ts` — 15 tests (interval/boundary, partial/no overlap, missing schedule, closure, past, 90-day window, booked, group 1–4, interruption, beyond closing).
+
+Run: `npm test`. Type check: `npx tsc --noEmit`. Lint: `npm run lint`. Build: `npm run build`. Verified: 42 tests pass, 0 type errors, 0 lint errors, build succeeds.
+
+### Limitations
+
+- In-memory state resets on server restart (documented).
+- Dev failure controls are query flags, not UI-exposed.
+- Customer time zone derived from browser; fallback `UTC`.
+- Calendar uses month view; reasons for disabled dates are exposed via tooltip/title.
+- No offline detection beyond fetch failure handling.
