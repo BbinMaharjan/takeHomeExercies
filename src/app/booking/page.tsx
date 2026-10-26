@@ -11,9 +11,19 @@ import {
   Space,
   Tag,
   Typography,
+  Divider,
+  Radio,
 } from "antd";
 import dayjs from "dayjs";
-import { CheckCircleOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
+  UserOutlined,
+  EnvironmentOutlined,
+  ArrowRightOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import { useMemo, useState, useEffect } from "react";
 import type { BookingProvider, TimeSlot } from "@/types/booking";
 import {
@@ -29,7 +39,9 @@ const { Title, Text, Paragraph } = Typography;
 const CUSTOMER_ZONE_FALLBACK = "UTC";
 function getCustomerZone(): string {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || CUSTOMER_ZONE_FALLBACK;
+    return (
+      Intl.DateTimeFormat().resolvedOptions().timeZone || CUSTOMER_ZONE_FALLBACK
+    );
   } catch {
     return CUSTOMER_ZONE_FALLBACK;
   }
@@ -38,7 +50,12 @@ function getCustomerZone(): string {
 interface ProviderResponse {
   provider: BookingProvider;
   today: string;
-  closures: Array<{ providerId: number; dayOffset: number; reason: string; date: string }>;
+  closures: Array<{
+    providerId: number;
+    dayOffset: number;
+    reason: string;
+    date: string;
+  }>;
   bookedSlots: Array<{
     providerId: number;
     specialistId: string;
@@ -188,7 +205,8 @@ export default function BookingPage() {
       }
       const bookedSet = new Set<string>();
       for (const b of bookedSlots) {
-        if (b.specialistId === specialistId && b.date === ds) bookedSet.add(b.startTime);
+        if (b.specialistId === specialistId && b.date === ds)
+          bookedSet.add(b.startTime);
       }
       // generate slots client-side
       const gen = generateSlots({
@@ -200,7 +218,10 @@ export default function BookingPage() {
       });
       const hasFree = gen.some((s: TimeSlot) => !s.isBooked);
       if (!hasFree) {
-        map.set(ds, gen.length === 0 ? "No available times" : "No available times");
+        map.set(
+          ds,
+          gen.length === 0 ? "No available times" : "No available times",
+        );
       } else {
         map.set(ds, "");
       }
@@ -224,7 +245,10 @@ export default function BookingPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw { status: res.status, message: data.message || data.error || "Booking failed" };
+        throw {
+          status: res.status,
+          message: data.message || data.error || "Booking failed",
+        };
       }
       return data as BookingResult;
     },
@@ -238,7 +262,9 @@ export default function BookingPage() {
       const e = err as { status?: number; message?: string } | null;
       if (e?.status === 409) {
         setConflictMessage(e.message || "Selected slot was just taken.");
-        queryClient.invalidateQueries({ queryKey: ["slots", providerId, selectedDate, specialistId] });
+        queryClient.invalidateQueries({
+          queryKey: ["slots", providerId, selectedDate, specialistId],
+        });
         setAlternatives([...availableStarts].slice(0, 5));
       } else {
         setConflictMessage(e?.message || "Booking failed.");
@@ -252,11 +278,17 @@ export default function BookingPage() {
       const res = await fetch(`/api/bookings/${existingQuery.data.bookingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: selectedDate, startTime: effectiveSelectedStart }),
+        body: JSON.stringify({
+          date: selectedDate,
+          startTime: effectiveSelectedStart,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw { status: res.status, message: data.message || data.error || "Reschedule failed" };
+        throw {
+          status: res.status,
+          message: data.message || data.error || "Reschedule failed",
+        };
       }
       return data;
     },
@@ -271,7 +303,9 @@ export default function BookingPage() {
       const e = err as { status?: number; message?: string } | null;
       if (e?.status === 409) {
         setConflictMessage(e.message || "Replacement slot was just taken.");
-        queryClient.invalidateQueries({ queryKey: ["slots", providerId, selectedDate, specialistId] });
+        queryClient.invalidateQueries({
+          queryKey: ["slots", providerId, selectedDate, specialistId],
+        });
         setAlternatives([...availableStarts].slice(0, 5));
       } else {
         setConflictMessage(e?.message || "Reschedule failed.");
@@ -282,7 +316,11 @@ export default function BookingPage() {
   // two-clock for selected slot
   const clocks = useMemo(() => {
     if (!provider || !selectedDate || !effectiveSelectedStart) return null;
-    const instant = zonedWallTimeToDate(selectedDate, effectiveSelectedStart, provider.normalizedTimeZone);
+    const instant = zonedWallTimeToDate(
+      selectedDate,
+      effectiveSelectedStart,
+      provider.normalizedTimeZone,
+    );
     return {
       provider: {
         date: formatDateInZone(instant, provider.normalizedTimeZone),
@@ -298,7 +336,11 @@ export default function BookingPage() {
   const existingClocks = useMemo(() => {
     if (!provider || !existingQuery.data) return null;
     const b = existingQuery.data;
-    const instant = zonedWallTimeToDate(b.date, b.startTime, provider.normalizedTimeZone);
+    const instant = zonedWallTimeToDate(
+      b.date,
+      b.startTime,
+      provider.normalizedTimeZone,
+    );
     return {
       provider: {
         date: formatDateInZone(instant, provider.normalizedTimeZone),
@@ -312,7 +354,11 @@ export default function BookingPage() {
   }, [provider, existingQuery.data, customerZone]);
 
   const slotPeriods = useMemo(() => {
-    const groups: Record<string, TimeSlot[]> = { Morning: [], Afternoon: [], Evening: [] };
+    const groups: Record<string, TimeSlot[]> = {
+      Morning: [],
+      Afternoon: [],
+      Evening: [],
+    };
     for (const s of slots) {
       const h = Number(s.startTime.slice(0, 2));
       const key = h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
@@ -333,399 +379,736 @@ export default function BookingPage() {
 
   if (successBookingId) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-2xl mx-auto">
-          <Card className="text-center">
-            <CheckCircleOutlined style={{ fontSize: 48, color: "#16a34a" }} />
-            <Title level={3} className="mt-4">
-              {mode === "reschedule" ? "Rescheduled successfully" : "Booking confirmed"}
-            </Title>
-            <Text type="secondary">
-              Booking ID: <strong>{successBookingId}</strong>
-            </Text>
-            <div className="mt-6">
-              <Button
-                type="primary"
-                onClick={() => {
-                  setSuccessBookingId(null);
-                  setConflictMessage(null);
-                  setAlternatives([]);
-                  if (mode === "book") {
-                    setSelectedStart("");
-                  }
-                }}
-              >
-                {mode === "reschedule" ? "Done" : "Book another"}
-              </Button>
-            </div>
-          </Card>
-        </div>
+      <div
+        style={{
+          padding: "80px 24px",
+          maxWidth: 700,
+          margin: "0 auto",
+          textAlign: "center",
+        }}
+      >
+        <Card
+          style={{
+            borderRadius: 16,
+            padding: "40px 24px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+          }}
+        >
+          <div
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              background: "#f6ffed",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 24px",
+              border: "1px solid #b7eb8f",
+            }}
+          >
+            <CheckCircleOutlined style={{ fontSize: 40, color: "#52c41a" }} />
+          </div>
+          <Title level={3} style={{ marginBottom: 8 }}>
+            {mode === "reschedule"
+              ? "Rescheduled successfully"
+              : "Booking confirmed"}
+          </Title>
+          <Paragraph type="secondary" style={{ marginBottom: 24 }}>
+            Booking Reference ID:{" "}
+            <strong style={{ color: "#262626" }}>{successBookingId}</strong>
+          </Paragraph>
+          <Button
+            type="primary"
+            size="large"
+            style={{ paddingInline: 32, borderRadius: 8, height: 44 }}
+            onClick={() => {
+              setSuccessBookingId(null);
+              setConflictMessage(null);
+              setAlternatives([]);
+              if (mode === "book") {
+                setSelectedStart("");
+              }
+            }}
+          >
+            {mode === "reschedule" ? "Done" : "Book another appointment"}
+          </Button>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <div className="max-w-6xl mx-auto p-4 space-y-4">
-        <header>
+    <div style={{ padding: "32px 24px", maxWidth: 1100, margin: "0 auto" }}>
+      {/* Header Banner */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          marginBottom: 24,
+          flexWrap: "wrap",
+          gap: 16,
+        }}
+      >
+        <div>
           <Title level={2} style={{ margin: 0 }}>
             Appointment Booking
           </Title>
           <Text type="secondary">
-            Provider-local times shown alongside your local time ({customerZone}).
+            Provider-local times shown alongside your local time (
+            <EnvironmentOutlined style={{ marginInline: 4 }} />
+            {customerZone}).
           </Text>
-        </header>
+        </div>
 
-        <Card>
-          <Space wrap>
-            <Button
-              type={mode === "book" ? "primary" : "default"}
-              onClick={() => {
-                setMode("book");
-                setSuccessBookingId(null);
-              }}
-            >
-              New booking
-            </Button>
-            <Button
-              type={mode === "reschedule" ? "primary" : "default"}
-              onClick={() => {
-                setMode("reschedule");
-                seedReschedule();
-              }}
-            >
-              Reschedule existing
-            </Button>
-          </Space>
-        </Card>
+        <Radio.Group
+          value={mode}
+          onChange={(e) => {
+            const val = e.target.value;
+            setMode(val);
+            setSuccessBookingId(null);
+            if (val === "reschedule") seedReschedule();
+          }}
+          optionType="button"
+          buttonStyle="solid"
+          size="large"
+        >
+          <Radio.Button value="book">New Booking</Radio.Button>
+          <Radio.Button value="reschedule">Reschedule Existing</Radio.Button>
+        </Radio.Group>
+      </div>
 
-        {mode === "reschedule" && existingQuery.isLoading && <Skeleton active />}
-        {mode === "reschedule" && existingQuery.isError && (
-          <Alert type="error" title="Failed to load existing booking" showIcon />
-        )}
+      <Divider style={{ margin: "12px 0 24px" }} />
 
-        {mode === "reschedule" && existingQuery.data && (
-          <Card title="Current appointment" size="small">
+      {mode === "reschedule" && existingQuery.isLoading && (
+        <Skeleton active paragraph={{ rows: 2 }} />
+      )}
+      {mode === "reschedule" && existingQuery.isError && (
+        <Alert
+          type="error"
+          message="Failed to load existing booking"
+          showIcon
+          style={{ marginBottom: 24, borderRadius: 8 }}
+        />
+      )}
+
+      {mode === "reschedule" && existingQuery.data && (
+        <Card
+          title={
+            <Space>
+              <ClockCircleOutlined /> Current Appointment details
+            </Space>
+          }
+          style={{
+            marginBottom: 24,
+            borderRadius: 12,
+            border: "1px solid #d9d9d9",
+            background: "#fafafa",
+          }}
+        >
+          <Space direction="vertical" size={8} style={{ width: "100%" }}>
             <Text>
-              {existingQuery.data.bookingId} — {existingQuery.data.date}{" "}
-              {existingQuery.data.startTime} ({existingQuery.data.numberOfPeople}{" "}
+              Reference ID: <strong>{existingQuery.data.bookingId}</strong> ·
+              Date: <strong>{existingQuery.data.date}</strong> at{" "}
+              <strong>{existingQuery.data.startTime}</strong> (
+              {existingQuery.data.numberOfPeople}{" "}
               {existingQuery.data.numberOfPeople === 1 ? "person" : "people"})
             </Text>
             {existingClocks && (
-              <div className="mt-2 text-sm">
-                <div>
-                  <strong>Hospital time:</strong> {existingClocks.provider.date}{" "}
-                  {existingClocks.provider.time}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                  gap: 16,
+                  marginTop: 8,
+                }}
+              >
+                <div
+                  style={{
+                    background: "#fff",
+                    padding: 12,
+                    borderRadius: 8,
+                    border: "1px solid #f0f0f0",
+                  }}
+                >
+                  <Text
+                    type="secondary"
+                    style={{ fontSize: 12, display: "block" }}
+                  >
+                    HOSPITAL TIME
+                  </Text>
+                  <Text strong>
+                    {existingClocks.provider.date} ·{" "}
+                    {existingClocks.provider.time}
+                  </Text>
                 </div>
-                <div>
-                  <strong>Your time:</strong> {existingClocks.customer.date}{" "}
-                  {existingClocks.customer.time}
+                <div
+                  style={{
+                    background: "#fff",
+                    padding: 12,
+                    borderRadius: 8,
+                    border: "1px solid #f0f0f0",
+                  }}
+                >
+                  <Text
+                    type="secondary"
+                    style={{ fontSize: 12, display: "block" }}
+                  >
+                    YOUR LOCAL TIME
+                  </Text>
+                  <Text strong>
+                    {existingClocks.customer.date} ·{" "}
+                    {existingClocks.customer.time}
+                  </Text>
                 </div>
               </div>
             )}
-          </Card>
-        )}
+          </Space>
+        </Card>
+      )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-1" title="Selection">
-            <Space direction="vertical" style={{ width: "100%" }} size={12}>
-              <div>
-                <Text strong>Provider</Text>
-                {providersQuery.isLoading ? (
-                  <Skeleton.Input style={{ width: "100%" }} active />
-                ) : (
-                  <Select
-                    style={{ width: "100%" }}
-                    placeholder="Select provider"
-                    value={providerId ?? undefined}
-                    onChange={(v) => {
-                      setProviderId(v);
-                      setSpecialistId("");
-                      setSelectedDate("");
-                      setSelectedStart("");
-                      setConflictMessage(null);
-                      setAlternatives([]);
-                    }}
-                    options={(providersQuery.data ?? []).map((p) => ({
-                      value: p.id,
-                      label: p.name,
-                    }))}
-                  />
-                )}
-              </div>
-
-              <div>
-                <Text strong>Specialist</Text>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: 24,
+          marginBottom: 24,
+        }}
+      >
+        {/* Selection Column */}
+        <Card
+          title={
+            <Space>
+              <UserOutlined /> Selection Parameters
+            </Space>
+          }
+          style={{
+            borderRadius: 12,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            border: "1px solid #f0f0f0",
+            height: "100%",
+          }}
+        >
+          <Space direction="vertical" style={{ width: "100%" }} size={16}>
+            <div>
+              <Text strong style={{ display: "block", marginBottom: 6 }}>
+                Provider
+              </Text>
+              {providersQuery.isLoading ? (
+                <Skeleton.Input style={{ width: "100%" }} active />
+              ) : (
                 <Select
                   style={{ width: "100%" }}
-                  placeholder="Select specialist"
-                  value={specialistId || undefined}
+                  size="large"
+                  placeholder="Select provider"
+                  value={providerId ?? undefined}
                   onChange={(v) => {
-                    setSpecialistId(v);
+                    setProviderId(v);
+                    setSpecialistId("");
                     setSelectedDate("");
                     setSelectedStart("");
                     setConflictMessage(null);
                     setAlternatives([]);
                   }}
-                  disabled={!provider}
-                  options={(provider?.specialists ?? []).map((s) => ({
-                    value: s.id,
-                    label: `${s.name} — ${s.speciality}`,
+                  options={(providersQuery.data ?? []).map((p) => ({
+                    value: p.id,
+                    label: p.name,
                   }))}
                 />
-              </div>
-
-              <div>
-                <Text strong>Number of people</Text>
-                <Select
-                  style={{ width: "100%" }}
-                  value={people}
-                  onChange={(v) => {
-                    setPeople(v);
-                    setSelectedStart("");
-                  }}
-                  options={[1, 2, 3, 4].map((n) => ({
-                    value: n,
-                    label: `${n} ${n === 1 ? "person" : "people"}`,
-                  }))}
-                />
-              </div>
-
-              {provider && (
-                <div className="text-xs text-gray-500">
-                  Time zone: {provider.normalizedTimeZone}
-                  {provider.timeZoneFallbackReason && (
-                    <div className="text-amber-600">
-                      Fallback: {provider.timeZoneFallbackReason}
-                    </div>
-                  )}
-                </div>
               )}
-            </Space>
-          </Card>
+            </div>
 
-          <Card className="lg:col-span-2" title="Date">
-            {!provider || !specialistId ? (
-              <Text type="secondary">Select a provider and specialist first.</Text>
-            ) : providerQuery.isLoading ? (
-              <Skeleton active paragraph={{ rows: 6 }} />
-            ) : (
-              <Calendar
-                value={selectedDate ? dayjs(selectedDate) : dayjs(providerToday)}
-                onSelect={(d) => {
-                  const ds = d.format("YYYY-MM-DD");
-                  if (availableDateMap.get(ds) === "") {
-                    setSelectedDate(ds);
-                    setSelectedStart("");
-                    setConflictMessage(null);
-                    setAlternatives([]);
-                  }
-                }}
-                disabledDate={(current) => {
-                  const ds = current.format("YYYY-MM-DD");
-                  const reason = availableDateMap.get(ds);
-                  return reason !== "";
-                }}
-                cellRender={(current, info) => {
-                  if (info.type !== "date") return info.originNode;
-                  const ds = current.format("YYYY-MM-DD");
-                  const reason = availableDateMap.get(ds);
-                  const avail = reason === "";
-                  return (
-                    <div
-                      title={reason || "Available"}
-                      className={`text-center ${avail ? "" : "opacity-40"}`}
-                    >
-                      <div>{current.date()}</div>
-                      {avail && (
-                        <div className="mx-auto mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      )}
-                    </div>
-                  );
-                }}
-              />
-            )}
-            {availableDateMap.size > 0 && (
-              <div className="mt-2 text-xs text-gray-500">
-                Green dot = available date. Hover disabled dates for reason.
-              </div>
-            )}
-          </Card>
-        </div>
-
-        {selectedDate && (
-          <Card title={`Available times — ${selectedDate}`}>
-            {slotsQuery.isLoading ? (
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Skeleton.Button key={i} active style={{ width: "100%" }} />
-                ))}
-              </div>
-            ) : slotsQuery.isError ? (
-              <Alert
-                type="error"
-                title="Failed to load slots"
-                description={slotsQuery.error?.message}
-                action={
-                  <Button size="small" onClick={() => slotsQuery.refetch()}>
-                    Retry
-                  </Button>
-                }
-              />
-            ) : slots.length === 0 ? (
-              <Text type="secondary">
-                {slotsQuery.data?.reason || "No available times on this date."}
+            <div>
+              <Text strong style={{ display: "block", marginBottom: 6 }}>
+                Specialist
               </Text>
-            ) : (
-              <Space direction="vertical" style={{ width: "100%" }} size={12}>
-                {Object.entries(slotPeriods).map(([period, periodSlots]) => {
-                  if (periodSlots.length === 0) return null;
-                  return (
-                    <div key={period}>
-                      <Text strong className="block mb-2">
-                        {period}
-                      </Text>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {periodSlots.map((s) => {
-                          const selectable =
-                            !s.isBooked && availableStarts.has(s.startTime);
-                          const selected = effectiveSelectedStart === s.startTime;
-                          return (
-                            <Button
-                              key={s.startTime}
-                              disabled={!selectable}
-                              type={selected ? "primary" : "default"}
-                              onClick={() => setSelectedStart(s.startTime)}
-                              aria-label={`${s.startTime} to ${s.endTime}${
-                                s.isBooked ? " booked" : ""
-                              }`}
-                              title={s.isBooked ? "Booked" : ""}
-                            >
-                              {s.startTime}
-                              {s.isBooked && (
-                                <Tag color="default" className="ml-1">
-                                  Booked
-                                </Tag>
-                              )}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </Space>
-            )}
-          </Card>
-        )}
-
-        {effectiveSelectedStart && clocks && (
-          <Card title="Review times">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Text strong>Hospital time ({provider?.normalizedTimeZone})</Text>
-                <div className="text-lg">
-                  {clocks.provider.date} · {clocks.provider.time}
-                </div>
-              </div>
-              <div>
-                <Text strong>Your time ({customerZone})</Text>
-                <div className="text-lg">
-                  {clocks.customer.date} · {clocks.customer.time}
-                </div>
-              </div>
-            </div>
-            {clocks.provider.date !== clocks.customer.date && (
-              <Alert
-                type="info"
-                className="mt-3"
-                title="Date changes across time zones"
-                description={`Provider date ${clocks.provider.date}, your date ${clocks.customer.date}.`}
-                showIcon
+              <Select
+                style={{ width: "100%" }}
+                size="large"
+                placeholder="Select specialist"
+                value={specialistId || undefined}
+                onChange={(v) => {
+                  setSpecialistId(v);
+                  setSelectedDate("");
+                  setSelectedStart("");
+                  setConflictMessage(null);
+                  setAlternatives([]);
+                }}
+                disabled={!provider}
+                options={(provider?.specialists ?? []).map((s) => ({
+                  value: s.id,
+                  label: `${s.name} — ${s.speciality}`,
+                }))}
               />
-            )}
-            <div className="mt-2 text-sm text-gray-600">
-              Start of a sequence of {people} consecutive appointment
-              {people > 1 ? "s" : ""}.
             </div>
-          </Card>
-        )}
 
-        {conflictMessage && (
-          <Alert
-            type="warning"
-            title={conflictMessage}
-            description={
-              alternatives.length > 0
-                ? `Closest alternatives: ${alternatives.join(", ")}. Select one and confirm.`
-                : "Refresh availability and choose another slot."
-            }
-            action={
-              <Button
-                size="small"
-                onClick={() => {
-                  queryClient.invalidateQueries({ queryKey: ["slots", providerId, selectedDate, specialistId] });
+            <div>
+              <Text strong style={{ display: "block", marginBottom: 6 }}>
+                Number of People
+              </Text>
+              <Select
+                style={{ width: "100%" }}
+                size="large"
+                value={people}
+                onChange={(v) => {
+                  setPeople(v);
+                  setSelectedStart("");
+                }}
+                options={[1, 2, 3, 4].map((n) => ({
+                  value: n,
+                  label: `${n} ${n === 1 ? "person" : "people"}`,
+                }))}
+              />
+            </div>
+
+            {provider && (
+              <div
+                style={{
+                  background: "#f5f5f5",
+                  padding: 12,
+                  borderRadius: 8,
+                  marginTop: 8,
                 }}
               >
-                Refresh
-              </Button>
-            }
-            showIcon
-          />
-        )}
-
-        <Card>
-          <Space>
-            <Button
-              type="primary"
-              size="large"
-              disabled={!canConfirm}
-              loading={createMutation.isPending || rescheduleMutation.isPending}
-              onClick={() => {
-                setConflictMessage(null);
-                setAlternatives([]);
-                if (mode === "reschedule") rescheduleMutation.mutate();
-                else createMutation.mutate();
-              }}
-            >
-              {mode === "reschedule" ? "Confirm reschedule" : "Confirm booking"}
-            </Button>
-            {createMutation.isError && !conflictMessage && (
-              <Text type="danger">
-                {(createMutation.error as { message?: string } | null)?.message}
-              </Text>
+                <Text
+                  type="secondary"
+                  style={{ fontSize: 12, display: "block" }}
+                >
+                  TIME ZONE INFO
+                </Text>
+                <Text style={{ fontSize: 13 }}>
+                  {provider.normalizedTimeZone}
+                </Text>
+                {provider.timeZoneFallbackReason && (
+                  <Text
+                    type="warning"
+                    style={{ fontSize: 12, display: "block", marginTop: 4 }}
+                  >
+                    Fallback: {provider.timeZoneFallbackReason}
+                  </Text>
+                )}
+              </div>
             )}
           </Space>
         </Card>
 
-        {mode === "reschedule" && selectedDate && selectedStart && clocks && existingClocks && (
-          <Card title="Comparison" size="small">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Text strong>Current appointment</Text>
-                <div className="text-sm">
-                  Hospital: {existingClocks.provider.date} {existingClocks.provider.time}
+        {/* Date Selection Calendar Column */}
+        <Card
+          title={
+            <Space>
+              <CalendarOutlined /> Select Date
+            </Space>
+          }
+          style={{
+            borderRadius: 12,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            border: "1px solid #f0f0f0",
+            gridColumn: "span 2",
+          }}
+        >
+          {!provider || !specialistId ? (
+            <div style={{ padding: "64px 0", textAlign: "center" }}>
+              <Text type="secondary">
+                Please select a provider and specialist first to view available
+                dates.
+              </Text>
+            </div>
+          ) : providerQuery.isLoading ? (
+            <Skeleton active paragraph={{ rows: 6 }} />
+          ) : (
+            <div style={{ width: "100%", maxWidth: 720, margin: "0 auto" }}>
+              <div
+                style={{
+                  border: "1px solid #f0f0f0",
+                  borderRadius: 10,
+                  padding: 8,
+                  background: "#fff",
+                }}
+              >
+                <Calendar
+                  value={
+                    selectedDate ? dayjs(selectedDate) : dayjs(providerToday)
+                  }
+                  onSelect={(d) => {
+                    const ds = d.format("YYYY-MM-DD");
+                    if (availableDateMap.get(ds) === "") {
+                      setSelectedDate(ds);
+                      setSelectedStart("");
+                      setConflictMessage(null);
+                      setAlternatives([]);
+                    }
+                  }}
+                  disabledDate={(current) => {
+                    const ds = current.format("YYYY-MM-DD");
+                    const reason = availableDateMap.get(ds);
+                    return reason !== "";
+                  }}
+                  cellRender={(current, info) => {
+                    if (info.type !== "date") return info.originNode;
+                    const ds = current.format("YYYY-MM-DD");
+                    const reason = availableDateMap.get(ds);
+                    const avail = reason === "";
+                    return (
+                      <div
+                        title={reason || "Available"}
+                        className={`text-center ${avail ? "" : "opacity-40"}`}
+                      >
+                        <div>{current.date()}</div>
+                        {avail && (
+                          <div className="mx-auto mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+              {availableDateMap.size > 0 && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    fontSize: 12,
+                    color: "#8c8c8c",
+                    textAlign: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background: "#52c41a",
+                      marginRight: 6,
+                    }}
+                  ></span>
+                  Green dot indicates available date. Hover disabled dates for
+                  details.
                 </div>
-                <div className="text-sm">
-                  You: {existingClocks.customer.date} {existingClocks.customer.time}
+              )}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {selectedDate && (
+        <Card
+          title={
+            <Space>
+              <ClockCircleOutlined /> Available Times for {selectedDate}
+            </Space>
+          }
+          style={{
+            marginBottom: 24,
+            borderRadius: 12,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            border: "1px solid #f0f0f0",
+          }}
+        >
+          {slotsQuery.isLoading ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                gap: 12,
+              }}
+            >
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Skeleton.Button
+                  key={i}
+                  active
+                  style={{ width: "100%", height: 40 }}
+                />
+              ))}
+            </div>
+          ) : slotsQuery.isError ? (
+            <Alert
+              type="error"
+              message="Failed to load slots"
+              description={slotsQuery.error?.message}
+              action={
+                <Button size="small" onClick={() => slotsQuery.refetch()}>
+                  Retry
+                </Button>
+              }
+              showIcon
+            />
+          ) : slots.length === 0 ? (
+            <Text type="secondary">
+              {slotsQuery.data?.reason || "No available times on this date."}
+            </Text>
+          ) : (
+            <Space direction="vertical" style={{ width: "100%" }} size={16}>
+              {Object.entries(slotPeriods).map(([period, periodSlots]) => {
+                if (periodSlots.length === 0) return null;
+                return (
+                  <div key={period}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 12,
+                        fontSize: 15,
+                        color: "#595959",
+                      }}
+                    >
+                      {period}
+                    </Text>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fill, minmax(130px, 1fr))",
+                        gap: 10,
+                      }}
+                    >
+                      {periodSlots.map((s) => {
+                        const selectable =
+                          !s.isBooked && availableStarts.has(s.startTime);
+                        const selected = effectiveSelectedStart === s.startTime;
+                        return (
+                          <Button
+                            key={s.startTime}
+                            disabled={!selectable}
+                            type={selected ? "primary" : "default"}
+                            onClick={() => setSelectedStart(s.startTime)}
+                            aria-label={`${s.startTime} to ${s.endTime}${
+                              s.isBooked ? " booked" : ""
+                            }`}
+                            title={s.isBooked ? "Booked" : ""}
+                            style={{
+                              height: 44,
+                              borderRadius: 8,
+                              fontWeight: selected ? 600 : 400,
+                              borderColor: selected ? undefined : "#d9d9d9",
+                            }}
+                          >
+                            <span>{s.startTime}</span>
+                            {s.isBooked && (
+                              <Tag
+                                color="default"
+                                style={{
+                                  marginLeft: 6,
+                                  fontSize: 10,
+                                  padding: "0 4px",
+                                }}
+                              >
+                                Booked
+                              </Tag>
+                            )}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </Space>
+          )}
+        </Card>
+      )}
+
+      {effectiveSelectedStart && clocks && (
+        <Card
+          title={
+            <Space>
+              <CheckCircleOutlined style={{ color: "#52c41a" }} /> Review
+              Selected Times
+            </Space>
+          }
+          style={{
+            marginBottom: 24,
+            borderRadius: 12,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            border: "1px solid #f0f0f0",
+            background: "#fcfcfc",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 20,
+            }}
+          >
+            <div
+              style={{
+                background: "#fff",
+                padding: 16,
+                borderRadius: 8,
+                border: "1px solid #f0f0f0",
+              }}
+            >
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, display: "block", marginBottom: 4 }}
+              >
+                HOSPITAL TIME ({provider?.normalizedTimeZone})
+              </Text>
+              <Text strong style={{ fontSize: 16 }}>
+                {clocks.provider.date} · {clocks.provider.time}
+              </Text>
+            </div>
+            <div
+              style={{
+                background: "#fff",
+                padding: 16,
+                borderRadius: 8,
+                border: "1px solid #f0f0f0",
+              }}
+            >
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, display: "block", marginBottom: 4 }}
+              >
+                YOUR LOCAL TIME ({customerZone})
+              </Text>
+              <Text strong style={{ fontSize: 16 }}>
+                {clocks.customer.date} · {clocks.customer.time}
+              </Text>
+            </div>
+          </div>
+          {clocks.provider.date !== clocks.customer.date && (
+            <Alert
+              type="info"
+              style={{ marginTop: 16, borderRadius: 8 }}
+              message="Date changes across time zones"
+              description={`Provider date is ${clocks.provider.date}, while your local time reflects ${clocks.customer.date}.`}
+              showIcon
+            />
+          )}
+          <div style={{ marginTop: 12, fontSize: 13, color: "#595959" }}>
+            This will secure a sequence of <strong>{people}</strong> consecutive
+            appointment{people > 1 ? "s" : ""}.
+          </div>
+        </Card>
+      )}
+
+      {conflictMessage && (
+        <Alert
+          type="warning"
+          style={{ marginBottom: 24, borderRadius: 8 }}
+          message={conflictMessage}
+          description={
+            alternatives.length > 0
+              ? `Closest alternatives: ${alternatives.join(", ")}. Select one and confirm.`
+              : "Please refresh availability and choose another slot."
+          }
+          action={
+            <Button
+              size="small"
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                queryClient.invalidateQueries({
+                  queryKey: ["slots", providerId, selectedDate, specialistId],
+                });
+              }}
+            >
+              Refresh
+            </Button>
+          }
+          showIcon
+        />
+      )}
+
+      <Card
+        style={{
+          borderRadius: 12,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          border: "1px solid #f0f0f0",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 16,
+          }}
+        >
+          <Button
+            type="primary"
+            size="large"
+            disabled={!canConfirm}
+            loading={createMutation.isPending || rescheduleMutation.isPending}
+            icon={<ArrowRightOutlined />}
+            iconPosition="end"
+            onClick={() => {
+              setConflictMessage(null);
+              setAlternatives([]);
+              if (mode === "reschedule") rescheduleMutation.mutate();
+              else createMutation.mutate();
+            }}
+            style={{ borderRadius: 8, height: 46, paddingInline: 32 }}
+          >
+            {mode === "reschedule" ? "Confirm Reschedule" : "Confirm Booking"}
+          </Button>
+
+          {createMutation.isError && !conflictMessage && (
+            <Text type="danger">
+              {(createMutation.error as { message?: string } | null)?.message}
+            </Text>
+          )}
+        </div>
+      </Card>
+
+      {mode === "reschedule" &&
+        selectedDate &&
+        selectedStart &&
+        clocks &&
+        existingClocks && (
+          <Card
+            title="Comparison Overview"
+            size="small"
+            style={{
+              marginTop: 24,
+              borderRadius: 12,
+              border: "1px solid #f0f0f0",
+              background: "#fafafa",
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: 16,
+              }}
+            >
+              <div>
+                <Text strong style={{ display: "block", marginBottom: 4 }}>
+                  Current Appointment
+                </Text>
+                <div style={{ fontSize: 13, color: "#595959" }}>
+                  Hospital: {existingClocks.provider.date}{" "}
+                  {existingClocks.provider.time}
+                </div>
+                <div style={{ fontSize: 13, color: "#595959" }}>
+                  You: {existingClocks.customer.date}{" "}
+                  {existingClocks.customer.time}
                 </div>
               </div>
               <div>
-                <Text strong>New appointment</Text>
-                <div className="text-sm">
+                <Text strong style={{ display: "block", marginBottom: 4 }}>
+                  New Appointment
+                </Text>
+                <div style={{ fontSize: 13, color: "#595959" }}>
                   Hospital: {clocks.provider.date} {clocks.provider.time}
                 </div>
-                <div className="text-sm">
+                <div style={{ fontSize: 13, color: "#595959" }}>
                   You: {clocks.customer.date} {clocks.customer.time}
                 </div>
               </div>
             </div>
-            <Paragraph className="mt-2 text-xs text-gray-500">
-              Confirming changes the existing booking; it does not create a new booking.
+            <Paragraph
+              type="secondary"
+              style={{ marginTop: 12, fontSize: 12, marginBottom: 0 }}
+            >
+              Confirming will directly update your existing booking rather than
+              creating a separate new one.
             </Paragraph>
           </Card>
         )}
-      </div>
     </div>
   );
 }
