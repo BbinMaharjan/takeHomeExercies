@@ -1,6 +1,7 @@
 "use client";
 
 import { applyAllFilters, computeFacets, sortServices } from "@/lib/filters";
+import type { FacetCounts } from "@/lib/filters";
 import {
   Category,
   FilterState,
@@ -14,6 +15,7 @@ import {
   Alert,
   Button,
   Card,
+  Drawer,
   Input,
   InputNumber,
   Modal,
@@ -57,6 +59,12 @@ export default function ServiceExplorer() {
 
   const [filterState, setFilterState] = useState<FilterState>(() =>
     parseFilterState(searchParams ?? new URLSearchParams()),
+  );
+
+  // Mobile filter drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pendingFilterState, setPendingFilterState] = useState<FilterState>(
+    () => parseFilterState(searchParams ?? new URLSearchParams()),
   );
 
   // Modal state for viewing all services of a provider
@@ -198,6 +206,66 @@ export default function ServiceExplorer() {
     return computeFacets(services, providers, categoryMap, explorerFilters);
   }, [services, providers, categories.length, categoryMap, explorerFilters]);
 
+  // Pending (drawer) filters
+  const pendingExplorerFilters = useMemo(
+    () => ({
+      serviceTypes: pendingFilterState.serviceTypes,
+      categories: pendingFilterState.categories,
+      subCategories: pendingFilterState.subCategories,
+      providers: pendingFilterState.providers,
+      cities: pendingFilterState.cities,
+      countries: pendingFilterState.countries,
+      priceMin: pendingFilterState.priceMin,
+      priceMax: pendingFilterState.priceMax,
+      priceCurrency: pendingFilterState.priceCurrency,
+      testAtHome: pendingFilterState.testAtHome,
+      searchQuery: pendingFilterState.searchQuery,
+    }),
+    [pendingFilterState],
+  );
+
+  const pendingFacets = useMemo(() => {
+    if (
+      services.length === 0 ||
+      providers.length === 0 ||
+      categories.length === 0
+    )
+      return null;
+    return computeFacets(
+      services,
+      providers,
+      categoryMap,
+      pendingExplorerFilters,
+    );
+  }, [
+    services,
+    providers,
+    categories.length,
+    categoryMap,
+    pendingExplorerFilters,
+  ]);
+
+  const pendingVisibleCount = useMemo(() => {
+    if (
+      services.length === 0 ||
+      providers.length === 0 ||
+      categories.length === 0
+    )
+      return services.length;
+    return applyAllFilters(
+      services,
+      providers,
+      categoryMap,
+      pendingExplorerFilters,
+    ).length;
+  }, [
+    services,
+    providers,
+    categories.length,
+    categoryMap,
+    pendingExplorerFilters,
+  ]);
+
   // pagination
   const pageSize = 12;
   const totalPages = Math.max(1, Math.ceil(visibleServices.length / pageSize));
@@ -276,6 +344,38 @@ export default function ServiceExplorer() {
       page: partial.page != null ? partial.page : 1,
     }));
   }, []);
+
+  const handlePendingFilterChange = useCallback(
+    (partial: Partial<FilterState>) => {
+      setPendingFilterState((prev) => ({
+        ...prev,
+        ...partial,
+        serviceTypes: partial.serviceTypes
+          ? new Set(partial.serviceTypes)
+          : new Set(prev.serviceTypes),
+        categories: partial.categories
+          ? new Set(partial.categories)
+          : new Set(prev.categories),
+        subCategories: partial.subCategories
+          ? new Set(partial.subCategories)
+          : new Set(prev.subCategories),
+        providers: partial.providers
+          ? new Set(partial.providers)
+          : new Set(prev.providers),
+        cities: partial.cities ? new Set(partial.cities) : new Set(prev.cities),
+        countries: partial.countries
+          ? new Set(partial.countries)
+          : new Set(prev.countries),
+        page: partial.page != null ? partial.page : 1,
+      }));
+    },
+    [],
+  );
+
+  const applyPendingFilters = useCallback(() => {
+    setFilterState(pendingFilterState);
+    setDrawerOpen(false);
+  }, [pendingFilterState]);
 
   if (loading) {
     return (
@@ -378,6 +478,240 @@ export default function ServiceExplorer() {
     };
   });
 
+  const makeOptions = (f: FacetCounts | null) => {
+    const serviceTypeOptions = [
+      "package",
+      "lab_test",
+      "service",
+      "wellness",
+      "insurance",
+    ].map((t) => ({
+      value: t,
+      label: `${t} (${f?.serviceTypes.get(t) ?? 0})`,
+      disabled: (f?.serviceTypes.get(t) ?? 0) === 0,
+    }));
+    const categoryOptions = categories.map((c) => ({
+      value: c.id,
+      label: `${c.title} (${f?.categories.get(c.id) ?? 0})`,
+      disabled: (f?.categories.get(c.id) ?? 0) === 0,
+    }));
+    const providerOptions = providers.map((p) => ({
+      value: p.id,
+      label: `${p.providerInformation.companyName} (${f?.providers.get(p.id) ?? 0})`,
+      disabled: (f?.providers.get(p.id) ?? 0) === 0,
+    }));
+    const cityOptions = Array.from(
+      new Set(providers.map((p) => p.providerInformation.city.slug)),
+    ).map((slug) => {
+      const p = providers.find((x) => x.providerInformation.city.slug === slug);
+      return {
+        value: slug,
+        label: `${p?.providerInformation.city.name ?? slug} (${f?.cities.get(slug) ?? 0})`,
+        disabled: (f?.cities.get(slug) ?? 0) === 0,
+      };
+    });
+    const countryOptions = Array.from(
+      new Set(providers.map((p) => p.providerInformation.country.alphaCode)),
+    ).map((code) => {
+      const p = providers.find(
+        (x) => x.providerInformation.country.alphaCode === code,
+      );
+      return {
+        value: code,
+        label: `${p?.providerInformation.country.name ?? code} (${f?.countries.get(code) ?? 0})`,
+        disabled: (f?.countries.get(code) ?? 0) === 0,
+      };
+    });
+    return {
+      serviceTypeOptions,
+      categoryOptions,
+      providerOptions,
+      cityOptions,
+      countryOptions,
+    };
+  };
+
+  const renderFilters = (
+    state: FilterState,
+    f: FacetCounts | null,
+    onChange: (partial: Partial<FilterState>) => void,
+  ) => {
+    const {
+      serviceTypeOptions,
+      categoryOptions,
+      providerOptions,
+      cityOptions,
+      countryOptions,
+    } = makeOptions(f);
+    return (
+      <Space orientation="vertical" style={{ width: "100%" }} size={14}>
+        {/* Search & Sort Group */}
+
+        <div className="space-y-3">
+          <Input.Search
+            placeholder="Search services..."
+            value={state.searchQuery}
+            onChange={(e) => onChange({ searchQuery: e.target.value })}
+            allowClear
+            className="rounded-lg"
+          />
+
+          <Select
+            placeholder="Sort by"
+            style={{ width: "100%" }}
+            value={state.sortOption}
+            onChange={(v) => onChange({ sortOption: v as SortOption })}
+            options={[
+              { value: "relevance", label: "Relevance" },
+
+              { value: "priceLow", label: "Price: low to high" },
+
+              { value: "priceHigh", label: "Price: high to low" },
+
+              { value: "rating", label: "Rating" },
+            ]}
+          />
+        </div>
+
+        <div className="border-t border-gray-100 my-1" />
+
+        {/* Categories & Classification Group */}
+
+        <div className="flex flex-col gap-3">
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            Categories
+          </div>
+
+          <Select
+            mode="multiple"
+            placeholder="Service type"
+            style={{ width: "100%" }}
+            maxTagCount="responsive"
+            value={[...state.serviceTypes]}
+            onChange={(vals) => onChange({ serviceTypes: new Set(vals) })}
+            options={serviceTypeOptions}
+          />
+
+          <Select
+            mode="multiple"
+            placeholder="Category"
+            style={{ width: "100%" }}
+            maxTagCount="responsive"
+            value={[...state.categories]}
+            onChange={(vals) => onChange({ categories: new Set(vals) })}
+            options={categoryOptions}
+          />
+
+          <Select
+            mode="multiple"
+            placeholder="Provider"
+            style={{ width: "100%" }}
+            maxTagCount="responsive"
+            showSearch
+            value={[...state.providers]}
+            onChange={(vals) => onChange({ providers: new Set(vals) })}
+            options={providerOptions}
+            filterOption={(input, option) =>
+              (option?.label ?? "")
+
+                .toLowerCase()
+
+                .includes(input.toLowerCase())
+            }
+          />
+        </div>
+
+        <div className="border-t border-gray-100 my-1" />
+
+        {/* Location Group */}
+
+        <div className="flex flex-col gap-3">
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            Location
+          </div>
+
+          <Select
+            mode="multiple"
+            placeholder="City"
+            style={{ width: "100%" }}
+            maxTagCount="responsive"
+            value={[...state.cities]}
+            onChange={(vals) => onChange({ cities: new Set(vals) })}
+            options={cityOptions}
+          />
+
+          <Select
+            mode="multiple"
+            placeholder="Country"
+            style={{ width: "100%" }}
+            maxTagCount="responsive"
+            value={[...state.countries]}
+            onChange={(vals) => onChange({ countries: new Set(vals) })}
+            options={countryOptions}
+          />
+        </div>
+
+        <div className="border-t border-gray-100 my-1" />
+
+        {/* Pricing Group */}
+
+        <div className="space-y-3">
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            Price Range
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <InputNumber
+              placeholder="Min price"
+              className="w-full"
+              value={state.priceMin ?? undefined}
+              onChange={(v) => onChange({ priceMin: v ?? null })}
+            />
+
+            <InputNumber
+              placeholder="Max price"
+              className="w-full"
+              value={state.priceMax ?? undefined}
+              onChange={(v) => onChange({ priceMax: v ?? null })}
+            />
+          </div>
+
+          <Select
+            placeholder="Currency"
+            style={{ width: "100%" }}
+            value={state.priceCurrency ?? undefined}
+            onChange={(v) => onChange({ priceCurrency: v ?? null })}
+            allowClear
+            options={[
+              { value: "THB", label: "THB" },
+
+              { value: "NPR", label: "NPR" },
+
+              { value: "INR", label: "INR" },
+            ]}
+          />
+        </div>
+
+        <div className="border-t border-gray-100 my-1" />
+
+        {/* Toggles */}
+
+        <div className="flex items-center justify-between py-1">
+          <Text className="text-sm font-medium text-gray-700">
+            Home test available
+          </Text>
+
+          <Switch
+            checked={state.testAtHome === true}
+            onChange={(checked) =>
+              onChange({ testAtHome: checked ? true : null })
+            }
+          />
+        </div>
+      </Space>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <div className="max-w-7xl mx-auto p-4">
@@ -395,9 +729,23 @@ export default function ServiceExplorer() {
           {visibleServices.length} services found
         </div>
 
+        {/* Mobile filter trigger */}
+        <div className="lg:hidden mb-4">
+          <Button
+            type="primary"
+            onClick={() => {
+              setPendingFilterState(filterState);
+              setDrawerOpen(true);
+            }}
+            aria-label="Open filters"
+          >
+            Filters
+          </Button>
+        </div>
+
         {/* Desktop filters */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          <div className="lg:col-span-1 space-y-4">
+          <div className="hidden lg:block lg:col-span-1 space-y-4">
             <Card
               title={
                 <div className="flex items-center justify-between py-1">
@@ -422,170 +770,15 @@ export default function ServiceExplorer() {
               className="shadow-sm rounded-xl border border-gray-100 overflow-hidden"
               styles={{ body: { padding: "16px" } }}
             >
-              <Space direction="vertical" style={{ width: "100%" }} size={14}>
-                {/* Search & Sort Group */}
-                <div className="space-y-3">
-                  <Input.Search
-                    placeholder="Search services..."
-                    value={filterState.searchQuery}
-                    onChange={(e) =>
-                      handleFilterChange({ searchQuery: e.target.value })
-                    }
-                    allowClear
-                    className="rounded-lg"
-                  />
-
-                  <Select
-                    placeholder="Sort by"
-                    style={{ width: "100%" }}
-                    value={filterState.sortOption}
-                    onChange={(v) =>
-                      handleFilterChange({ sortOption: v as SortOption })
-                    }
-                    options={[
-                      { value: "relevance", label: "Relevance" },
-                      { value: "priceLow", label: "Price: low to high" },
-                      { value: "priceHigh", label: "Price: high to low" },
-                      { value: "rating", label: "Rating" },
-                    ]}
-                  />
+              {renderFilters(filterState, facets, handleFilterChange)}
+              <div className="flex items-center justify-center mt-3 w-100">
+                <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                  <Text className="text-sm text-gray-500">Services found</Text>
+                  <span className="inline-flex min-w-7 items-center justify-center rounded-md bg-blue-100 px-2 py-1 text-sm font-semibold text-blue-700">
+                    {visibleServices.length}
+                  </span>
                 </div>
-
-                <div className="border-t border-gray-100 my-1" />
-
-                {/* Categories & Classification Group */}
-                <div className="flex flex-col gap-3">
-                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Categories
-                  </div>
-                  <Select
-                    mode="multiple"
-                    placeholder="Service type"
-                    style={{ width: "100%" }}
-                    maxTagCount="responsive"
-                    value={[...filterState.serviceTypes]}
-                    onChange={(vals) =>
-                      handleFilterChange({ serviceTypes: new Set(vals) })
-                    }
-                    options={serviceTypeOptions}
-                  />
-                  <Select
-                    mode="multiple"
-                    placeholder="Category"
-                    style={{ width: "100%" }}
-                    maxTagCount="responsive"
-                    value={[...filterState.categories]}
-                    onChange={(vals) =>
-                      handleFilterChange({ categories: new Set(vals) })
-                    }
-                    options={categoryOptions}
-                  />
-                  <Select
-                    mode="multiple"
-                    placeholder="Provider"
-                    style={{ width: "100%" }}
-                    maxTagCount="responsive"
-                    showSearch
-                    value={[...filterState.providers]}
-                    onChange={(vals) =>
-                      handleFilterChange({ providers: new Set(vals) })
-                    }
-                    options={providerOptions}
-                    filterOption={(input, option) =>
-                      (option?.label ?? "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                  />
-                </div>
-
-                <div className="border-t border-gray-100 my-1" />
-
-                {/* Location Group */}
-                <div className="flex flex-col gap-3">
-                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Location
-                  </div>
-                  <Select
-                    mode="multiple"
-                    placeholder="City"
-                    style={{ width: "100%" }}
-                    maxTagCount="responsive"
-                    value={[...filterState.cities]}
-                    onChange={(vals) =>
-                      handleFilterChange({ cities: new Set(vals) })
-                    }
-                    options={cityOptions}
-                  />
-                  <Select
-                    mode="multiple"
-                    placeholder="Country"
-                    style={{ width: "100%" }}
-                    maxTagCount="responsive"
-                    value={[...filterState.countries]}
-                    onChange={(vals) =>
-                      handleFilterChange({ countries: new Set(vals) })
-                    }
-                    options={countryOptions}
-                  />
-                </div>
-
-                <div className="border-t border-gray-100 my-1" />
-
-                {/* Pricing Group */}
-                <div className="space-y-3">
-                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Price Range
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <InputNumber
-                      placeholder="Min price"
-                      className="w-full"
-                      value={filterState.priceMin ?? undefined}
-                      onChange={(v) =>
-                        handleFilterChange({ priceMin: v ?? null })
-                      }
-                    />
-                    <InputNumber
-                      placeholder="Max price"
-                      className="w-full"
-                      value={filterState.priceMax ?? undefined}
-                      onChange={(v) =>
-                        handleFilterChange({ priceMax: v ?? null })
-                      }
-                    />
-                  </div>
-                  <Select
-                    placeholder="Currency"
-                    style={{ width: "100%" }}
-                    value={filterState.priceCurrency ?? undefined}
-                    onChange={(v) =>
-                      handleFilterChange({ priceCurrency: v ?? null })
-                    }
-                    allowClear
-                    options={[
-                      { value: "THB", label: "THB" },
-                      { value: "NPR", label: "NPR" },
-                      { value: "INR", label: "INR" },
-                    ]}
-                  />
-                </div>
-
-                <div className="border-t border-gray-100 my-1" />
-
-                {/* Toggles */}
-                <div className="flex items-center justify-between py-1">
-                  <Text className="text-sm font-medium text-gray-700">
-                    Home test available
-                  </Text>
-                  <Switch
-                    checked={filterState.testAtHome === true}
-                    onChange={(checked) =>
-                      handleFilterChange({ testAtHome: checked ? true : null })
-                    }
-                  />
-                </div>
-              </Space>
+              </div>
             </Card>
           </div>
 
@@ -701,19 +894,29 @@ export default function ServiceExplorer() {
                 />
               </div>
             )}
-
-            <div className="flex items-center justify-end mb-3">
-              <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                <Text className="text-sm text-gray-500">Services found</Text>
-                <span className="inline-flex min-w-7 items-center justify-center rounded-md bg-blue-100 px-2 py-1 text-sm font-semibold text-blue-700">
-                  {visibleServices.length}
-                </span>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Services modal */}
+        {/* Mobile filter drawer */}
+        <Drawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          placement="left"
+          size={320}
+          title="Filters"
+          footer={
+            <Button type="primary" block onClick={applyPendingFilters}>
+              Show results ({pendingVisibleCount})
+            </Button>
+          }
+        >
+          {renderFilters(
+            pendingFilterState,
+            pendingFacets,
+            handlePendingFilterChange,
+          )}
+        </Drawer>
+
         <Modal
           title={
             <div className="pb-2 border-b border-gray-100">
