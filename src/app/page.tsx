@@ -42,7 +42,7 @@ export default function HomePage() {
               zones.
             </Paragraph>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            {/* <div className="flex flex-wrap items-center gap-3 pt-2">
               <Button
                 type="primary"
                 size="large"
@@ -52,7 +52,7 @@ export default function HomePage() {
               >
                 Explore Services
               </Button>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -104,7 +104,7 @@ export default function HomePage() {
           {/* Task 2 Card */}
           <Card
             hoverable
-            onClick={() => router.push("/checkout")}
+            onClick={() => router.push("/cart")}
             className="rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between"
             styles={{
               body: {
