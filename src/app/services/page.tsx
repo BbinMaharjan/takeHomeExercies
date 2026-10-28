@@ -733,6 +733,7 @@ export default function ServiceExplorer() {
         <div className="lg:hidden mb-4">
           <Button
             type="primary"
+            className="lg:hidden"
             onClick={() => {
               setPendingFilterState(filterState);
               setDrawerOpen(true);
@@ -767,7 +768,7 @@ export default function ServiceExplorer() {
                 </div>
               }
               size="small"
-              className="shadow-sm rounded-xl border border-gray-100 overflow-hidden"
+              className="shadow-sm rounded-xl border border-gray-100 overflow-hidden hidden lg:block"
               styles={{ body: { padding: "16px" } }}
             >
               {renderFilters(filterState, facets, handleFilterChange)}
