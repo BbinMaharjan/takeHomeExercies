@@ -159,7 +159,7 @@ export default function CartPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "48px 24px", maxWidth: 900, margin: "0 auto" }}>
+      <div style={{ padding: "32px 16px", maxWidth: 900, margin: "0 auto" }}>
         <Skeleton active paragraph={{ rows: 8 }} />
       </div>
     );
@@ -168,10 +168,10 @@ export default function CartPage() {
   if (isError) {
     return (
       <div
-        style={{ padding: "48px 24px", maxWidth: 900, margin: "0 auto" }}
+        style={{ padding: "32px 16px", maxWidth: 900, margin: "0 auto" }}
         role="alert"
       >
-        <Card style={{ borderRadius: 12, textAlign: "center", padding: 32 }}>
+        <Card style={{ borderRadius: 12, textAlign: "center", padding: 24 }}>
           <ExclamationCircleOutlined
             style={{ fontSize: 48, color: "#ff4d4f", marginBottom: 16 }}
           />
@@ -190,7 +190,7 @@ export default function CartPage() {
     return (
       <div
         style={{
-          padding: "80px 24px",
+          padding: "48px 16px",
           maxWidth: 700,
           margin: "0 auto",
           textAlign: "center",
@@ -199,25 +199,28 @@ export default function CartPage() {
         <Card
           style={{
             borderRadius: 16,
-            padding: "40px 24px",
+            padding: "24px 16px",
             boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
           }}
         >
           <div
             style={{
-              width: 80,
-              height: 80,
+              width: 70,
+              height: 70,
               borderRadius: "50%",
               background: "#f5f5f5",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              margin: "0 auto 24px",
+              margin: "0 auto 20px",
             }}
           >
-            <ShoppingCartOutlined style={{ fontSize: 36, color: "#bfbfbf" }} />
+            <ShoppingCartOutlined style={{ fontSize: 32, color: "#bfbfbf" }} />
           </div>
-          <Title level={3} style={{ marginBottom: 8 }}>
+          <Title
+            level={3}
+            style={{ marginBottom: 8, fontSize: "clamp(20px, 5vw, 24px)" }}
+          >
             Your cart is empty
           </Title>
           <Paragraph type="secondary" style={{ marginBottom: 24 }}>
@@ -228,7 +231,7 @@ export default function CartPage() {
             <Button
               type="primary"
               size="large"
-              style={{ paddingInline: 32, borderRadius: 8 }}
+              style={{ width: "100%", maxWidth: 240, borderRadius: 8 }}
             >
               Browse services
             </Button>
@@ -242,7 +245,11 @@ export default function CartPage() {
 
   return (
     <div
-      style={{ padding: "32px 24px", maxWidth: 1000, margin: "0 auto" }}
+      style={{
+        padding: "clamp(16px, 4vw, 32px) clamp(12px, 3vw, 24px)",
+        maxWidth: 1000,
+        margin: "0 auto",
+      }}
       aria-live="polite"
     >
       {/* Header Banner */}
@@ -250,14 +257,17 @@ export default function CartPage() {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: 24,
+          alignItems: "flex-start",
+          marginBottom: 16,
           flexWrap: "wrap",
           gap: 16,
         }}
       >
         <div>
-          <Title level={2} style={{ margin: 0 }}>
+          <Title
+            level={2}
+            style={{ margin: 0, fontSize: "clamp(22px, 5vw, 28px)" }}
+          >
             Cart
           </Title>
           <Text type="secondary">
@@ -265,7 +275,11 @@ export default function CartPage() {
           </Text>
         </div>
 
-        <Space size="middle">
+        <Space
+          size="middle"
+          wrap
+          style={{ width: "100%", justifyContent: "flex-start" }}
+        >
           <Button
             icon={<SyncOutlined />}
             onClick={handleMerge}
@@ -275,13 +289,13 @@ export default function CartPage() {
           >
             Merge guest cart
           </Button>
-          <Link href="/checkout">
+          <Link href="/checkout" style={{ flex: 1, minWidth: 120 }}>
             <Button
               type="primary"
               size="large"
               icon={<ArrowRightOutlined />}
               iconPosition="end"
-              style={{ borderRadius: 8, height: 40, paddingInline: 24 }}
+              style={{ borderRadius: 8, height: 40, width: "100%" }}
             >
               Checkout
             </Button>
@@ -289,7 +303,7 @@ export default function CartPage() {
         </Space>
       </div>
 
-      <Divider style={{ margin: "12px 0 24px" }} />
+      <Divider style={{ margin: "8px 0 20px" }} />
 
       {/* Cart Groups */}
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -334,8 +348,9 @@ function CartGroupCard({
         boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
         border: "1px solid #f0f0f0",
       }}
+      bodyStyle={{ padding: "16px clamp(12px, 3vw, 24px)" }}
       title={
-        <Space>
+        <Space wrap size={[8, 4]}>
           <span
             style={{
               textTransform: "capitalize",
@@ -396,15 +411,20 @@ function CartGroupCard({
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: 8,
+          gap: 12,
         }}
       >
-        <div>
-          <Text type="secondary">Subtotal: </Text>
+        <Space wrap size={[8, 4]}>
+          <Text type="secondary">Subtotal:</Text>
           {Object.entries(group.subtotals).map(([cur, amt]) => (
             <Tag
               key={cur}
-              style={{ fontWeight: 600, fontSize: 14, padding: "2px 8px" }}
+              style={{
+                fontWeight: 600,
+                fontSize: 14,
+                padding: "2px 8px",
+                margin: 0,
+              }}
             >
               {formatMoney(amt, cur)}
             </Tag>
@@ -412,7 +432,7 @@ function CartGroupCard({
           {Object.keys(group.subtotals).length === 0 && (
             <Text type="secondary">No priced items</Text>
           )}
-        </div>
+        </Space>
 
         {group.unpricedItems > 0 && (
           <Text type="danger" style={{ fontSize: 13 }}>
@@ -448,14 +468,17 @@ function CartLineRow({
     <div
       style={{
         display: "flex",
+        flexDirection: "row",
         flexWrap: "wrap",
         gap: 16,
         alignItems: "center",
+        justifyContent: "space-between",
         padding: "16px 0",
         borderBottom: "1px solid #f5f5f5",
       }}
     >
-      <div style={{ flex: 1, minWidth: 220 }}>
+      {/* Product Details Section */}
+      <div style={{ flex: "1 1 200px", minWidth: 0 }}>
         {unavailable ? (
           <div>
             <Text strong type="danger">
@@ -471,7 +494,12 @@ function CartLineRow({
           <div>
             <Text
               strong
-              style={{ fontSize: 15, display: "block", marginBottom: 2 }}
+              style={{
+                fontSize: 15,
+                display: "block",
+                marginBottom: 2,
+                wordBreak: "break-word",
+              }}
             >
               {line.product!.title}
             </Text>
@@ -485,85 +513,101 @@ function CartLineRow({
         )}
       </div>
 
+      {/* Wellness Options Select (if available) */}
       {wellnessOptions && wellnessOptions.length > 0 && !unavailable && (
-        <Select
-          placeholder="Select duration"
-          value={line.wellnessPricingId ?? undefined}
-          onChange={(v) => onWellnessChange(line.id, v ?? null)}
-          style={{ width: 190 }}
-          options={wellnessOptions.map((o) => ({
-            value: o.id,
-            label: `${o.durationInMinutes} min — ${formatMoney(o.amount_after_service_charge, line.product!.currency)}`,
-          }))}
-        />
+        <div style={{ flex: "0 1 190px", width: "100%", maxWidth: 190 }}>
+          <Select
+            placeholder="Select duration"
+            value={line.wellnessPricingId ?? undefined}
+            onChange={(v) => onWellnessChange(line.id, v ?? null)}
+            style={{ width: "100%" }}
+            options={wellnessOptions.map((o) => ({
+              value: o.id,
+              label: `${o.durationInMinutes} min — ${formatMoney(o.amount_after_service_charge, line.product!.currency)}`,
+            }))}
+          />
+        </div>
       )}
 
-      {/* Quantity Stepper */}
+      {/* Actions and Pricing Cluster (Quantity, Total, Delete) */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          border: "1px solid #d9d9d9",
-          borderRadius: 6,
-          background: "#fafafa",
-          padding: 2,
+          gap: 16,
+          marginLeft: "auto",
+          flexWrap: "wrap",
         }}
       >
-        <Button
-          type="text"
-          icon={<MinusOutlined style={{ fontSize: 11 }} />}
-          size="small"
-          onClick={() => onQuantityChange(line.id, -1)}
-          disabled={removing || line.quantity <= 1}
-          aria-label={`Decrease quantity for ${line.product?.title ?? "item"}`}
-          style={{ width: 28, height: 28 }}
-        />
-        <span
+        {/* Quantity Stepper */}
+        <div
           style={{
-            minWidth: 32,
-            textAlign: "center",
-            fontWeight: 500,
-            fontSize: 14,
+            display: "flex",
+            alignItems: "center",
+            border: "1px solid #d9d9d9",
+            borderRadius: 6,
+            background: "#fafafa",
+            padding: 2,
           }}
-          aria-live="polite"
         >
-          {line.quantity}
-        </span>
+          <Button
+            type="text"
+            icon={<MinusOutlined style={{ fontSize: 11 }} />}
+            size="small"
+            onClick={() => onQuantityChange(line.id, -1)}
+            disabled={removing || line.quantity <= 1}
+            aria-label={`Decrease quantity for ${line.product?.title ?? "item"}`}
+            style={{ width: 28, height: 28 }}
+          />
+          <span
+            style={{
+              minWidth: 32,
+              textAlign: "center",
+              fontWeight: 500,
+              fontSize: 14,
+            }}
+            aria-live="polite"
+          >
+            {line.quantity}
+          </span>
+          <Button
+            type="text"
+            icon={<PlusOutlined style={{ fontSize: 11 }} />}
+            size="small"
+            onClick={() => onQuantityChange(line.id, 1)}
+            disabled={removing}
+            aria-label={`Increase quantity for ${line.product?.title ?? "item"}`}
+            style={{ width: 28, height: 28 }}
+          />
+        </div>
+
+        {/* Amount */}
+        <div style={{ minWidth: 80, textAlign: "right" }}>
+          {amount !== null ? (
+            <Text strong style={{ fontSize: 15 }}>
+              {formatMoney(amount, line.product!.currency)}
+            </Text>
+          ) : (
+            <Text type="secondary" style={{ fontSize: 13 }}>
+              Price unknown
+            </Text>
+          )}
+        </div>
+
+        {/* Delete Button */}
         <Button
+          ref={focusRef}
           type="text"
-          icon={<PlusOutlined style={{ fontSize: 11 }} />}
-          size="small"
-          onClick={() => onQuantityChange(line.id, 1)}
+          danger
+          icon={<DeleteOutlined />}
+          size="middle"
+          loading={removing}
           disabled={removing}
-          aria-label={`Increase quantity for ${line.product?.title ?? "item"}`}
-          style={{ width: 28, height: 28 }}
+          onClick={() => onRemove(line.id)}
+          aria-label={`Remove ${line.product?.title ?? "item"}`}
+          style={{ color: "#ff4d4f" }}
         />
       </div>
-
-      <div style={{ minWidth: 100, textAlign: "right" }}>
-        {amount !== null ? (
-          <Text strong style={{ fontSize: 15 }}>
-            {formatMoney(amount, line.product!.currency)}
-          </Text>
-        ) : (
-          <Text type="secondary" style={{ fontSize: 13 }}>
-            Price unknown
-          </Text>
-        )}
-      </div>
-
-      <Button
-        ref={focusRef}
-        type="text"
-        danger
-        icon={<DeleteOutlined />}
-        size="middle"
-        loading={removing}
-        disabled={removing}
-        onClick={() => onRemove(line.id)}
-        aria-label={`Remove ${line.product?.title ?? "item"}`}
-        style={{ color: "#ff4d4f" }}
-      />
     </div>
   );
 }
@@ -584,7 +628,7 @@ function MergeSummaryModal({
       onOk={onClose}
       okText="Got it"
       centered
-      style={{ borderRadius: 12 }}
+      style={{ borderRadius: 12, maxWidth: "calc(100vw - 32px)" }}
     >
       <Paragraph type="secondary" style={{ marginBottom: 16 }}>
         Here is what happened when merging your guest cart:
