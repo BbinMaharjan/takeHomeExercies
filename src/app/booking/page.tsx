@@ -122,13 +122,10 @@ export default function BookingPage() {
     }
   }
 
-  // Seed selections once existing booking data arrives in reschedule mode.
   useEffect(() => {
     if (mode === "reschedule" && existingQuery.data) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       seedReschedule();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, existingQuery.data]);
 
   const providersQuery = useQuery({
@@ -182,7 +179,6 @@ export default function BookingPage() {
     ? selectedStart
     : "";
 
-  // available dates map
   const availableDateMap = useMemo(() => {
     const map = new Map<string, string>();
     if (!provider || !specialistId) return map;
@@ -208,7 +204,6 @@ export default function BookingPage() {
         if (b.specialistId === specialistId && b.date === ds)
           bookedSet.add(b.startTime);
       }
-      // generate slots client-side
       const gen = generateSlots({
         provider,
         specialist,
@@ -229,7 +224,6 @@ export default function BookingPage() {
     return map;
   }, [provider, specialistId, providerToday, closures, bookedSlots]);
 
-  // mutation create
   const createMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch("/api/bookings", {
@@ -313,7 +307,6 @@ export default function BookingPage() {
     },
   });
 
-  // two-clock for selected slot
   const clocks = useMemo(() => {
     if (!provider || !selectedDate || !effectiveSelectedStart) return null;
     const instant = zonedWallTimeToDate(
@@ -381,7 +374,7 @@ export default function BookingPage() {
     return (
       <div
         style={{
-          padding: "80px 24px",
+          padding: "40px 16px",
           maxWidth: 700,
           margin: "0 auto",
           textAlign: "center",
@@ -390,7 +383,7 @@ export default function BookingPage() {
         <Card
           style={{
             borderRadius: 16,
-            padding: "40px 24px",
+            padding: "24px 16px",
             boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
           }}
         >
@@ -421,7 +414,13 @@ export default function BookingPage() {
           <Button
             type="primary"
             size="large"
-            style={{ paddingInline: 32, borderRadius: 8, height: 44 }}
+            style={{
+              paddingInline: 32,
+              borderRadius: 8,
+              height: 44,
+              width: "100%",
+              maxWidth: 280,
+            }}
             onClick={() => {
               setSuccessBookingId(null);
               setConflictMessage(null);
@@ -439,23 +438,26 @@ export default function BookingPage() {
   }
 
   return (
-    <div style={{ padding: "32px 24px", maxWidth: 1100, margin: "0 auto" }}>
+    <div style={{ padding: "20px 16px", maxWidth: 1100, margin: "0 auto" }}>
       {/* Header Banner */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: 24,
+          alignItems: "flex-start",
+          marginBottom: 20,
           flexWrap: "wrap",
           gap: 16,
         }}
       >
         <div>
-          <Title level={2} style={{ margin: 0 }}>
+          <Title
+            level={2}
+            style={{ margin: 0, fontSize: "clamp(22px, 4vw, 30px)" }}
+          >
             Appointment Booking
           </Title>
-          <Text type="secondary">
+          <Text type="secondary" style={{ fontSize: 13 }}>
             Provider-local times shown alongside your local time (
             <EnvironmentOutlined style={{ marginInline: 4 }} />
             {customerZone}).
@@ -473,13 +475,21 @@ export default function BookingPage() {
           optionType="button"
           buttonStyle="solid"
           size="large"
+          style={{ width: "100%", display: "flex" }}
         >
-          <Radio.Button value="book">New Booking</Radio.Button>
-          <Radio.Button value="reschedule">Reschedule Existing</Radio.Button>
+          <Radio.Button value="book" style={{ flex: 1, textAlign: "center" }}>
+            New Booking
+          </Radio.Button>
+          <Radio.Button
+            value="reschedule"
+            style={{ flex: 1, textAlign: "center" }}
+          >
+            Reschedule
+          </Radio.Button>
         </Radio.Group>
       </div>
 
-      <Divider style={{ margin: "12px 0 24px" }} />
+      <Divider style={{ margin: "12px 0 20px" }} />
 
       {mode === "reschedule" && existingQuery.isLoading && (
         <Skeleton active paragraph={{ rows: 2 }} />
@@ -519,7 +529,7 @@ export default function BookingPage() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
                   gap: 16,
                   marginTop: 8,
                 }}
@@ -568,11 +578,12 @@ export default function BookingPage() {
         </Card>
       )}
 
+      {/* Main Responsive Grid Layout */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: 24,
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 20,
           marginBottom: 24,
         }}
       >
@@ -587,7 +598,6 @@ export default function BookingPage() {
             borderRadius: 12,
             boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             border: "1px solid #f0f0f0",
-            height: "100%",
           }}
         >
           <Space direction="vertical" style={{ width: "100%" }} size={16}>
@@ -704,11 +714,10 @@ export default function BookingPage() {
             borderRadius: 12,
             boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
             border: "1px solid #f0f0f0",
-            gridColumn: "span 2",
           }}
         >
           {!provider || !specialistId ? (
-            <div style={{ padding: "64px 0", textAlign: "center" }}>
+            <div style={{ padding: "48px 0", textAlign: "center" }}>
               <Text type="secondary">
                 Please select a provider and specialist first to view available
                 dates.
@@ -717,16 +726,24 @@ export default function BookingPage() {
           ) : providerQuery.isLoading ? (
             <Skeleton active paragraph={{ rows: 6 }} />
           ) : (
-            <div style={{ width: "100%", maxWidth: 720, margin: "0 auto" }}>
+            <div
+              style={{
+                width: "100%",
+                maxWidth: 720,
+                margin: "0 auto",
+                overflowX: "auto",
+              }}
+            >
               <div
                 style={{
                   border: "1px solid #f0f0f0",
                   borderRadius: 10,
-                  padding: 8,
+                  padding: 4,
                   background: "#fff",
                 }}
               >
                 <Calendar
+                  fullscreen={false}
                   value={
                     selectedDate ? dayjs(selectedDate) : dayjs(providerToday)
                   }
@@ -775,17 +792,38 @@ export default function BookingPage() {
                       <div
                         title={unavailableReason}
                         aria-label={`${ds}: ${unavailableReason}`}
-                        className={`text-center ${
-                          isAvailable ? "" : "opacity-40"
-                        }`}
+                        style={{
+                          textAlign: "center",
+                          opacity: isAvailable ? 1 : 0.4,
+                        }}
                       >
                         <div>{current.date()}</div>
-
-                        <div className="mt-1 flex h-2 items-center justify-center">
+                        <div
+                          style={{
+                            marginTop: 2,
+                            display: "flex",
+                            height: 8,
+                            justifyContent: "center",
+                          }}
+                        >
                           {isAvailable ? (
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            <span
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: "50%",
+                                background: "#52c41a",
+                              }}
+                            />
                           ) : (
-                            <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                            <span
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: "50%",
+                                background: "#ff4d4f",
+                              }}
+                            />
                           )}
                         </div>
                       </div>
@@ -796,7 +834,7 @@ export default function BookingPage() {
               {availableDateMap.size > 0 && (
                 <div
                   style={{
-                    marginTop: 14,
+                    marginTop: 12,
                     fontSize: 12,
                     color: "#8c8c8c",
                     textAlign: "center",
@@ -839,7 +877,7 @@ export default function BookingPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
                 gap: 12,
               }}
             >
@@ -877,7 +915,7 @@ export default function BookingPage() {
                       strong
                       style={{
                         display: "block",
-                        marginBottom: 12,
+                        marginBottom: 10,
                         fontSize: 15,
                         color: "#595959",
                       }}
@@ -888,7 +926,7 @@ export default function BookingPage() {
                       style={{
                         display: "grid",
                         gridTemplateColumns:
-                          "repeat(auto-fill, minmax(130px, 1fr))",
+                          "repeat(auto-fill, minmax(110px, 1fr))",
                         gap: 10,
                       }}
                     >
@@ -911,6 +949,7 @@ export default function BookingPage() {
                               borderRadius: 8,
                               fontWeight: selected ? 600 : 400,
                               borderColor: selected ? undefined : "#d9d9d9",
+                              width: "100%",
                             }}
                           >
                             <span>{s.startTime}</span>
@@ -918,9 +957,9 @@ export default function BookingPage() {
                               <Tag
                                 color="default"
                                 style={{
-                                  marginLeft: 6,
-                                  fontSize: 10,
-                                  padding: "0 4px",
+                                  marginLeft: 4,
+                                  fontSize: 9,
+                                  padding: "0 2px",
                                 }}
                               >
                                 Booked
@@ -957,8 +996,8 @@ export default function BookingPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 20,
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 16,
             }}
           >
             <div
@@ -975,7 +1014,7 @@ export default function BookingPage() {
               >
                 HOSPITAL TIME ({provider?.normalizedTimeZone})
               </Text>
-              <Text strong style={{ fontSize: 16 }}>
+              <Text strong style={{ fontSize: 15 }}>
                 {clocks.provider.date} · {clocks.provider.time}
               </Text>
             </div>
@@ -993,23 +1032,10 @@ export default function BookingPage() {
               >
                 YOUR LOCAL TIME ({customerZone})
               </Text>
-              <Text strong style={{ fontSize: 16 }}>
+              <Text strong style={{ fontSize: 15 }}>
                 {clocks.customer.date} · {clocks.customer.time}
               </Text>
             </div>
-          </div>
-          {clocks.provider.date !== clocks.customer.date && (
-            <Alert
-              type="info"
-              style={{ marginTop: 16, borderRadius: 8 }}
-              message="Date changes across time zones"
-              description={`Provider date is ${clocks.provider.date}, while your local time reflects ${clocks.customer.date}.`}
-              showIcon
-            />
-          )}
-          <div style={{ marginTop: 12, fontSize: 13, color: "#595959" }}>
-            This will secure a sequence of <strong>{people}</strong> consecutive
-            appointment{people > 1 ? "s" : ""}.
           </div>
         </Card>
       )}
@@ -1017,128 +1043,60 @@ export default function BookingPage() {
       {conflictMessage && (
         <Alert
           type="warning"
-          style={{ marginBottom: 24, borderRadius: 8 }}
-          message={conflictMessage}
+          message="Booking Conflict"
           description={
-            alternatives.length > 0
-              ? `Closest alternatives: ${alternatives.join(", ")}. Select one and confirm.`
-              : "Please refresh availability and choose another slot."
-          }
-          action={
-            <Button
-              size="small"
-              icon={<ReloadOutlined />}
-              onClick={() => {
-                queryClient.invalidateQueries({
-                  queryKey: ["slots", providerId, selectedDate, specialistId],
-                });
-              }}
-            >
-              Refresh
-            </Button>
+            <div>
+              <p>{conflictMessage}</p>
+              {alternatives.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <Text strong>Alternative available start times:</Text>
+                  <Space wrap style={{ marginTop: 6 }}>
+                    {alternatives.map((alt) => (
+                      <Button
+                        key={alt}
+                        size="small"
+                        onClick={() => setSelectedStart(alt)}
+                      >
+                        {alt}
+                      </Button>
+                    ))}
+                  </Space>
+                </div>
+              )}
+            </div>
           }
           showIcon
+          style={{ marginBottom: 24, borderRadius: 8 }}
         />
       )}
 
-      <Card
-        style={{
-          borderRadius: 12,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-          border: "1px solid #f0f0f0",
-        }}
-      >
-        <div
+      {/* Action Confirmation Button */}
+      <div style={{ textAlign: "right" }}>
+        <Button
+          type="primary"
+          size="large"
+          disabled={!canConfirm}
+          loading={createMutation.isPending || rescheduleMutation.isPending}
+          onClick={() => {
+            if (mode === "book") {
+              createMutation.mutate();
+            } else {
+              rescheduleMutation.mutate();
+            }
+          }}
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 16,
+            height: 48,
+            paddingInline: 32,
+            borderRadius: 8,
+            fontWeight: 600,
+            width: "100%",
+            maxWidth: 320,
           }}
         >
-          <Button
-            type="primary"
-            size="large"
-            disabled={!canConfirm}
-            loading={createMutation.isPending || rescheduleMutation.isPending}
-            icon={<ArrowRightOutlined />}
-            iconPosition="end"
-            onClick={() => {
-              setConflictMessage(null);
-              setAlternatives([]);
-              if (mode === "reschedule") rescheduleMutation.mutate();
-              else createMutation.mutate();
-            }}
-            style={{ borderRadius: 8, height: 46, paddingInline: 32 }}
-          >
-            {mode === "reschedule" ? "Confirm Reschedule" : "Confirm Booking"}
-          </Button>
-
-          {createMutation.isError && !conflictMessage && (
-            <Text type="danger">
-              {(createMutation.error as { message?: string } | null)?.message}
-            </Text>
-          )}
-        </div>
-      </Card>
-
-      {mode === "reschedule" &&
-        selectedDate &&
-        selectedStart &&
-        clocks &&
-        existingClocks && (
-          <Card
-            title="Comparison Overview"
-            size="small"
-            style={{
-              marginTop: 24,
-              borderRadius: 12,
-              border: "1px solid #f0f0f0",
-              background: "#fafafa",
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: 16,
-              }}
-            >
-              <div>
-                <Text strong style={{ display: "block", marginBottom: 4 }}>
-                  Current Appointment
-                </Text>
-                <div style={{ fontSize: 13, color: "#595959" }}>
-                  Hospital: {existingClocks.provider.date}{" "}
-                  {existingClocks.provider.time}
-                </div>
-                <div style={{ fontSize: 13, color: "#595959" }}>
-                  You: {existingClocks.customer.date}{" "}
-                  {existingClocks.customer.time}
-                </div>
-              </div>
-              <div>
-                <Text strong style={{ display: "block", marginBottom: 4 }}>
-                  New Appointment
-                </Text>
-                <div style={{ fontSize: 13, color: "#595959" }}>
-                  Hospital: {clocks.provider.date} {clocks.provider.time}
-                </div>
-                <div style={{ fontSize: 13, color: "#595959" }}>
-                  You: {clocks.customer.date} {clocks.customer.time}
-                </div>
-              </div>
-            </div>
-            <Paragraph
-              type="secondary"
-              style={{ marginTop: 12, fontSize: 12, marginBottom: 0 }}
-            >
-              Confirming will directly update your existing booking rather than
-              creating a separate new one.
-            </Paragraph>
-          </Card>
-        )}
+          {mode === "reschedule" ? "Confirm Reschedule" : "Confirm Booking"}{" "}
+          <ArrowRightOutlined />
+        </Button>
+      </div>
     </div>
   );
 }
