@@ -730,9 +730,15 @@ export default function BookingPage() {
                   value={
                     selectedDate ? dayjs(selectedDate) : dayjs(providerToday)
                   }
+                  validRange={[
+                    dayjs(providerToday),
+                    dayjs(providerToday).add(89, "day"),
+                  ]}
                   onSelect={(d) => {
                     const ds = d.format("YYYY-MM-DD");
-                    if (availableDateMap.get(ds) === "") {
+                    const reason = availableDateMap.get(ds);
+
+                    if (reason === "") {
                       setSelectedDate(ds);
                       setSelectedStart("");
                       setConflictMessage(null);
@@ -742,22 +748,46 @@ export default function BookingPage() {
                   disabledDate={(current) => {
                     const ds = current.format("YYYY-MM-DD");
                     const reason = availableDateMap.get(ds);
-                    return reason !== "";
+
+                    return (
+                      current.isBefore(dayjs(providerToday), "day") ||
+                      reason !== ""
+                    );
                   }}
                   cellRender={(current, info) => {
                     if (info.type !== "date") return info.originNode;
+
                     const ds = current.format("YYYY-MM-DD");
                     const reason = availableDateMap.get(ds);
-                    const avail = reason === "";
+                    const isPast = current.isBefore(
+                      dayjs(providerToday),
+                      "day",
+                    );
+                    const isAvailable = !isPast && reason === "";
+
+                    const unavailableReason = isPast
+                      ? "Past date"
+                      : reason === undefined
+                        ? "Availability not loaded"
+                        : reason || "Available";
+
                     return (
                       <div
-                        title={reason || "Available"}
-                        className={`text-center ${avail ? "" : "opacity-40"}`}
+                        title={unavailableReason}
+                        aria-label={`${ds}: ${unavailableReason}`}
+                        className={`text-center ${
+                          isAvailable ? "" : "opacity-40"
+                        }`}
                       >
                         <div>{current.date()}</div>
-                        {avail && (
-                          <div className="mx-auto mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        )}
+
+                        <div className="mt-1 flex h-2 items-center justify-center">
+                          {isAvailable ? (
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          ) : (
+                            <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                          )}
+                        </div>
                       </div>
                     );
                   }}
